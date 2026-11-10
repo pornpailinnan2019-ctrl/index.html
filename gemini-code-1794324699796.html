@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เรียนพิเศษคณิตศาสตร์ ครูแนน</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google Fonts: Sarabun & Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', 'Sarabun', sans-serif; }
+        .theme-pink { --primary: #ec4899; --primary-light: #fce7f3; --accent: #db2777; --header-bg: linear-gradient(135deg, #fbcfe8 0%, #f472b6 100%); }
+        .theme-blue { --primary: #3b82f6; --primary-light: #eff6ff; --accent: #2563eb; --header-bg: linear-gradient(135deg, #bfdbfe 0%, #60a5fa 100%); }
+        .theme-mint { --primary: #10b981; --primary-light: #ecfdf5; --accent: #059669; --header-bg: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%); }
+        .theme-purple { --primary: #8b5cf6; --primary-light: #f5f3ff; --accent: #7c3aed; --header-bg: linear-gradient(135deg, #ddd6fe 0%, #a78bfa 100%); }
+        .theme-yellow { --primary: #f59e0b; --primary-light: #fffbeb; --accent: #d97706; --header-bg: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%); }
+    </style>
+</head>
+<body id="appBody" class="theme-pink bg-sky-50 min-h-screen text-gray-800 pb-12">
+
+    <!-- Header Banner -->
+    <header class="w-full bg-white shadow-md border-b-4 border-pink-200 py-4 px-4 sm:px-8">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+                <div class="text-4xl">📚</div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-pink-600">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
+                    <p class="text-sm text-gray-500">โทร: <span class="font-semibold text-pink-500">0962561542</span> | ตารางเรียนและเช็คชื่อประจำเดือน</p>
+                </div>
+            </div>
+
+            <!-- Controls: Theme Picker & Admin Mode Toggle -->
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <!-- Theme Selectors -->
+                <div class="flex items-center gap-1 bg-gray-100 p-1.5 rounded-full shadow-inner">
+                    <button onclick="setTheme('pink')" title="สีชมพู" class="w-6 h-6 rounded-full bg-pink-400 hover:scale-110 transition"></button>
+                    <button onclick="setTheme('blue')" title="สีฟ้า" class="w-6 h-6 rounded-full bg-blue-400 hover:scale-110 transition"></button>
+                    <button onclick="setTheme('mint')" title="สีเขียวมินต์" class="w-6 h-6 rounded-full bg-emerald-400 hover:scale-110 transition"></button>
+                    <button onclick="setTheme('purple')" title="สีม่วง" class="w-6 h-6 rounded-full bg-purple-400 hover:scale-110 transition"></button>
+                    <button onclick="setTheme('yellow')" title="สีเหลือง" class="w-6 h-6 rounded-full bg-amber-400 hover:scale-110 transition"></button>
+                </div>
+
+                <!-- Mode Indicator / Login Button -->
+                <div id="authContainer">
+                    <button id="authBtn" onclick="toggleAuthMode()" class="px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                        🔒 โหมดนักเรียน (เปลี่ยนเป็นโหมดครู)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 mt-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-3 mb-6">
+            <button onclick="switchTab('schedule')" id="tabBtn-schedule" class="px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm bg-pink-500 text-white">
+                📅 ตารางสอนรายเดือน
+            </button>
+            <button onclick="switchTab('students')" id="tabBtn-students" class="px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-100">
+                👥 รายชื่อนักเรียนทั้งหมด
+            </button>
+            <button onclick="switchTab('payment')" id="tabBtn-payment" class="px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-100">
+                💰 ตารางชำระเงินรายเดือน
+            </button>
+            <button onclick="switchTab('levels')" id="tabBtn-levels" class="admin-only hidden px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm bg-purple-500 text-white">
+                ⚙️ จัดการระดับชั้น (ครู)
+            </button>
+        </div>
+
+        <!-- TAB 1: SCHEDULE & ATTENDANCE -->
+        <div id="tabContent-schedule" class="space-y-6">
+            <!-- Month Picker & Title -->
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">🗓️</span>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800" id="currentMonthTitle">ตารางเรียนเดือน พฤศจิกายน 2569</h2>
+                        <p class="text-xs text-gray-500">คลิกที่ช่องคาเรียนเพื่อเช็คชื่อนักเรียน (โหมดครู)</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="month" id="calendarPicker" onchange="changeMonth(this.value)" class="px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-pink-50/50">
+                </div>
+            </div>
+
+            <!-- Schedule Table Card -->
+            <div class="bg-white rounded-3xl shadow-md border border-pink-100 overflow-hidden">
+                <div class="p-4 bg-pink-50 border-b border-pink-100 flex justify-between items-center">
+                    <h3 class="font-bold text-pink-700 flex items-center gap-2">✨ ตารางเรียนและเช็คชื่อประจำคาบ</h3>
+                    <div id="adminScheduleControls" class="admin-only hidden">
+                        <button onclick="openAddSlotModal()" class="px-3 py-1.5 bg-pink-500 text-white text-xs rounded-lg hover:bg-pink-600 transition shadow">➕ เพิ่มคาบเรียน/เวลา</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="scheduleTable">
+                        <thead>
+                            <tr class="bg-pink-100/70 text-pink-900 text-sm sm:text-base border-b border-pink-200">
+                                <th class="p-3 text-center border-r border-pink-200 w-36">เวลา</th>
+                                <!-- Dynamic Date Headers -->
+                                <th class="p-3 text-center border-r border-pink-200">14 พ.ย. 69 (ส.)</th>
+                                <th class="p-3 text-center border-r border-pink-200">15 พ.ย. 69 (อ.)</th>
+                                <th class="p-3 text-center border-r border-pink-200">21 พ.ย. 69 (ส.)</th>
+                                <th class="p-3 text-center">22, 28, 29 พ.ย. 69</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody" class="text-sm divide-y divide-gray-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MASTER STUDENT LIST -->
+        <div id="tabContent-students" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">👥 รายชื่อนักเรียนทั้งหมด</h2>
+                    <p class="text-xs text-gray-500">จัดการข้อมูลนักเรียน ระดับชั้น และเวลาเรียนที่ลงทะเบียน</p>
+                </div>
+                <div id="adminStudentControls" class="admin-only hidden">
+                    <button onclick="openStudentModal()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition shadow">➕ เพิ่มนักเรียนใหม่</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-md border border-pink-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-pink-100/70 text-pink-900 text-sm sm:text-base border-b border-pink-200">
+                                <th class="p-3.5">ชื่อ - นามสกุล</th>
+                                <th class="p-3.5">ระดับชั้น</th>
+                                <th class="p-3.5">เวลาเรียน / คอร์ส</th>
+                                <th class="p-3.5 text-center">มาเรียน (ครั้ง/เดือน)</th>
+                                <th class="p-3.5 text-center admin-only hidden">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody" class="text-sm divide-y divide-gray-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MONTHLY PAYMENT TRACKING -->
+        <div id="tabContent-payment" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">💰 ตารางการชำระเงินรายเดือน</h2>
+                    <p class="text-xs text-gray-500">ติดตามสถานะการชำระคอร์สเรียนประจำเดือน</p>
+                </div>
+                <div id="paymentSummaryBox" class="text-sm bg-pink-50 px-4 py-2 rounded-2xl border border-pink-200 font-semibold text-pink-700">
+                    ยอดชำระแล้ว: <span id="paidTotalCount">0</span> คน
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-md border border-pink-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-pink-100/70 text-pink-900 text-sm sm:text-base border-b border-pink-200">
+                                <th class="p-3.5">ชื่อนักเรียน</th>
+                                <th class="p-3.5">ระดับชั้น</th>
+                                <th class="p-3.5">เวลาเรียน</th>
+                                <th class="p-3.5 admin-only hidden">จำนวนเงิน (บาท)</th>
+                                <th class="p-3.5 text-center">สถานะการชำระเงิน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTableBody" class="text-sm divide-y divide-gray-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: LEVEL MANAGEMENT (ADMIN ONLY) -->
+        <div id="tabContent-levels" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 shadow-md border border-purple-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">⚙️ จัดการระดับชั้น (เฉพาะโหมดครู)</h2>
+                    <p class="text-xs text-gray-500">เพิ่มหรือแก้ไขระดับชั้นสำหรับนักเรียนในระบบ</p>
+                </div>
+                <div>
+                    <button onclick="openLevelModal()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-medium hover:bg-purple-600 transition shadow">➕ เพิ่มระดับชั้นใหม่</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-md border border-purple-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-purple-100/70 text-purple-900 text-sm sm:text-base border-b border-purple-200">
+                                <th class="p-3.5">ระดับชั้น</th>
+                                <th class="p-3.5 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="levelTableBody" class="text-sm divide-y divide-gray-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: ATTENDANCE & CLASS DETAIL -->
+    <div id="attendanceModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-pink-100 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="modalSlotTitle" class="font-bold text-lg text-pink-700">เช็คชื่อนักเรียนประจำคาบ</h3>
+                <button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+            <div id="modalSlotContent" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                <!-- Dynamic checklist -->
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button onclick="closeAttendanceModal()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium shadow hover:bg-pink-600 transition">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT STUDENT -->
+    <div id="studentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-pink-100 space-y-4">
+            <h3 id="studentModalTitle" class="font-bold text-lg text-pink-700 border-b pb-2">เพิ่มนักเรียนใหม่</h3>
+            <input type="hidden" id="editStudentId">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อ - นามสกุล</label>
+                    <input type="text" id="inputStudentName" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="เช่น ด.ช. รักเรียน เพียรวิชา">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">ระดับชั้น</label>
+                    <select id="inputStudentLevel" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">เวลาเรียน / คอร์ส</label>
+                    <select id="inputStudentTimeSlot" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">ค่าเรียนรายเดือน (บาท)</label>
+                    <input type="number" id="inputStudentFee" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" value="1500">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button onclick="closeStudentModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-300 transition">ยกเลิก</button>
+                <button onclick="saveStudentData()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-medium shadow hover:bg-pink-600 transition">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT LEVEL -->
+    <div id="levelModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-purple-100 space-y-4">
+            <h3 class="font-bold text-lg text-purple-700 border-b pb-2">เพิ่มระดับชั้นใหม่</h3>
+            <input type="hidden" id="editLevelOldName">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อระดับชั้น</label>
+                <input type="text" id="inputLevelName" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="เช่น ม.3, ปวช.1">
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button onclick="closeLevelModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-300 transition">ยกเลิก</button>
+                <button onclick="saveLevelData()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-medium shadow hover:bg-purple-600 transition">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- State Management & Default Data ---
+        let isAdminMode = false;
+        let currentTheme = localStorage.getItem('kruNaan_theme') || 'pink';
+        
+        // Levels
+        let levels = JSON.parse(localStorage.getItem('kruNaan_levels')) || [
+            "ประถม", "ม.ต้น", "ม.4", "ม.5", "ม.6"
+        ];
+
+        // Time Slots & Schedule Columns
+        let timeSlots = [
+            "10.00 - 12.00 น.",
+            "13.00 - 15.00 น.",
+            "15.00 - 17.00 น.",
+            "17.00 - 19.00 น."
+        ];
+
+        let scheduleDates = [
+            "14 พ.ย. 69 (ส.)",
+            "15 พ.ย. 69 (อ.)",
+            "21 พ.ย. 69 (ส.)",
+            "22, 28, 29 พ.ย. 69 (อ./ส.)"
+        ];
+
+        // Master Students
+        let students = JSON.parse(localStorage.getItem('kruNaan_students')) || [
+            { id: 1, name: "ด.ช. รักเรียน เพียรวิชา", level: "ม.4", timeSlot: "10.00 - 12.00 น.", fee: 1500, paid: true },
+            { id: 2, name: "ด.ญ. สดใส ตั้งใจเรียน", level: "ม.5", timeSlot: "13.00 - 15.00 น.", fee: 1500, paid: false },
+            { id: 3, name: "นาย สมชาย มุ่งมั่น", level: "ม.6", timeSlot: "15.00 - 17.00 น.", fee: 1800, paid: true }
+        ];
+
+        // Attendance records: { "slotIndex-dateIndex-studentId": "มา" | "ขาด" | "ลา" }
+        let attendance = JSON.parse(localStorage.getItem('kruNaan_attendance')) || {};
+
+        let currentActiveTab = 'schedule';
+        let currentModalContext = null;
+
+        // Initialize App
+        window.onload = function() {
+            setTheme(currentTheme);
+            updateAuthUI();
+            renderScheduleTable();
+            renderStudentTable();
+            renderPaymentTable();
+            renderLevelTable();
+            populateDropdowns();
+        };
+
+        // --- Theme Handler ---
+        function setTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('kruNaan_theme', theme);
+            document.getElementById('appBody').className = `theme-${theme} bg-sky-50 min-h-screen text-gray-800 pb-12`;
+        }
+
+        // --- Auth Mode Toggle with Password ---
+        function toggleAuthMode() {
+            if (!isAdminMode) {
+                let pwd = prompt("กรุณาใส่รหัสผ่านสำหรับโหมดครู:");
+                if (pwd === "123456789") {
+                    isAdminMode = true;
+                    alert("เข้าสู่โหมดคุณครูเรียบร้อย!");
+                } else if (pwd !== null) {
+                    alert("รหัสผ่านไม่ถูกต้อง!");
+                    return;
+                } else {
+                    return;
+                }
+            } else {
+                isAdminMode = false;
+                alert("ออกจากโหมดคุณครูแล้ว (กลับสู่โหมดนักเรียน)");
+                if(currentActiveTab === 'levels') switchTab('schedule');
+            }
+            updateAuthUI();
+            renderScheduleTable();
+            renderStudentTable();
+            renderPaymentTable();
+        }
+
+        function updateAuthUI() {
+            const btn = document.getElementById('authBtn');
+            const adminElements = document.querySelectorAll('.admin-only');
+            
+            if (isAdminMode) {
+                btn.className = "px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2 bg-pink-500 text-white hover:bg-pink-600";
+                btn.innerHTML = "🔓 โหมดคุณครู (คลิกเพื่อออก)";
+                adminElements.forEach(el => el.classList.remove('hidden'));
+            } else {
+                btn.className = "px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2 bg-gray-200 text-gray-700 hover:bg-gray-300";
+                btn.innerHTML = "🔒 โหมดนักเรียน (เปลี่ยนเป็นโหมดครู)";
+                adminElements.forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        // --- Tab Switching ---
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            ['schedule', 'students', 'payment', 'levels'].forEach(t => {
+                document.getElementById(`tabContent-${t}`).classList.add('hidden');
+                document.getElementById(`tabBtn-${t}`).className = "px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-100";
+            });
+            document.getElementById(`tabContent-${tabId}`).classList.remove('hidden');
+            let activeColor = tabId === 'levels' ? 'bg-purple-500 text-white' : 'bg-pink-500 text-white';
+            document.getElementById(`tabBtn-${tabId}`).className = `px-5 py-2.5 rounded-2xl font-semibold text-sm sm:text-base transition shadow-sm ${activeColor}`;
+        }
+
+        // --- Populate Dropdowns ---
+        function populateDropdowns() {
+            let levelSelect = document.getElementById('inputStudentLevel');
+            levelSelect.innerHTML = levels.map(l => `<option value="${l}">${l}</option>`).join('');
+
+            let timeSelect = document.getElementById('inputStudentTimeSlot');
+            timeSelect.innerHTML = timeSlots.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        // --- Render Schedule Table ---
+        function renderScheduleTable() {
+            let tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = '';
+
+            timeSlots.forEach((time, slotIdx) => {
+                let tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-pink-50/30 transition";
+
+                // Time Column
+                let tdTime = document.createElement('td');
+                tdTime.className = "p-3 font-semibold text-pink-800 border-r border-gray-100 text-xs sm:text-sm bg-pink-50/40";
+                tdTime.innerHTML = `🕒 ${time}`;
+                tr.appendChild(tdTime);
+
+                // Date Columns
+                scheduleDates.forEach((dateStr, dateIdx) => {
+                    let td = document.createElement('td');
+                    td.className = "p-3 border-r border-gray-100 text-center cursor-pointer hover:bg-pink-50 transition";
+                    
+                    // Find students enrolled in this time slot
+                    let enrolledStudents = students.filter(s => s.timeSlot === time);
+                    
+                    if (enrolledStudents.length === 0) {
+                        td.innerHTML = `<span class="text-gray-400 text-xs">- ไม่มีนักเรียน -</span>`;
+                    } else {
+                        let html = `<div class="space-y-1">`;
+                        enrolledStudents.forEach(st => {
+                            let key = `${slotIdx}-${dateIdx}-${st.id}`;
+                            let status = attendance[key] || "ยังไม่เช็ค";
+                            let badgeColor = "bg-gray-100 text-gray-600";
+                            if (status === "มา") badgeColor = "bg-emerald-100 text-emerald-700";
+                            if (status === "ขาด") badgeColor = "bg-rose-100 text-rose-700";
+                            if (status === "ลา") badgeColor = "bg-amber-100 text-amber-700";
+
+                            html += `<div class="text-xs p-1.5 rounded-xl bg-white border border-pink-100 shadow-xs flex justify-between items-center">
+                                <span class="font-medium text-gray-700 truncate max-w-[100px]">${st.name}</span>
+                                <span class="px-2 py-0.5 rounded-md font-semibold text-[10px] ${badgeColor}">${status}</span>
+                            </div>`;
+                        });
+                        html += `</div>`;
+                        td.innerHTML = html;
+                    }
+
+                    // Click to open attendance modal
+                    td.onclick = () => openAttendanceModal(slotIdx, time, dateIdx, dateStr);
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Attendance Modal ---
+        function openAttendanceModal(slotIdx, timeStr, dateIdx, dateStr) {
+            if (!isAdminMode) {
+                alert("โหมดนักเรียนไม่สามารถเช็คชื่อได้ (ดูได้อย่างเดียว)");
+                return;
+            }
+            currentModalContext = { slotIdx, dateIdx };
+            document.getElementById('modalSlotTitle').innerText = `เช็คชื่อคาบ: ${timeStr} (${dateStr})`;
+
+            let enrolledStudents = students.filter(s => s.timeSlot === timeStr);
+            let container = document.getElementById('modalSlotContent');
+
+            if (enrolledStudents.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 py-4">ไม่มีนักเรียนลงทะเบียนในคาบเวลานี้</p>`;
+            } else {
+                container.innerHTML = enrolledStudents.map(st => {
+                    let key = `${slotIdx}-${dateIdx}-${st.id}`;
+                    let currentStatus = attendance[key] || "มา";
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-pink-50/50 rounded-2xl border border-pink-100">
+                            <div>
+                                <p class="font-semibold text-gray-800 text-sm">${st.name}</p>
+                                <p class="text-xs text-gray-500">ระดับชั้น: ${st.level}</p>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="setAttendanceStatus(${st.id}, 'มา')" class="px-3 py-1 rounded-lg text-xs font-semibold transition ${currentStatus === 'มา' ? 'bg-emerald-500 text-white shadow' : 'bg-white text-gray-600 border'}">มา</button>
+                                <button onclick="setAttendanceStatus(${st.id}, 'ขาด')" class="px-3 py-1 rounded-lg text-xs font-semibold transition ${currentStatus === 'ขาด' ? 'bg-rose-500 text-white shadow' : 'bg-white text-gray-600 border'}">ขาด</button>
+                                <button onclick="setAttendanceStatus(${st.id}, 'ลา')" class="px-3 py-1 rounded-lg text-xs font-semibold transition ${currentStatus === 'ลา' ? 'bg-amber-500 text-white shadow' : 'bg-white text-gray-600 border'}">ลา</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('attendanceModal').classList.remove('hidden');
+        }
+
+        function setAttendanceStatus(studentId, status) {
+            let { slotIdx, dateIdx } = currentModalContext;
+            let key = `${slotIdx}-${dateIdx}-${studentId}`;
+            attendance[key] = status;
+            localStorage.setItem('kruNaan_attendance', JSON.stringify(attendance));
+            
+            // Refresh modal items and tables
+            openAttendanceModal(slotIdx, timeSlots[slotIdx], dateIdx, scheduleDates[dateIdx]);
+            renderScheduleTable();
+            renderStudentTable();
+        }
+
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').classList.add('hidden');
+        }
+
+        // --- Render Student Table ---
+        function renderStudentTable() {
+            let tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">ยังไม่มีรายชื่อนักเรียนในระบบ</td></tr>`;
+                return;
+            }
+
+            students.forEach(st => {
+                // Calculate total attendance count for this student in the month
+                let presentCount = 0;
+                Object.keys(attendance).forEach(key => {
+                    let parts = key.split('-'); // slotIdx-dateIdx-studentId
+                    if (parseInt(parts[2]) === st.id && attendance[key] === 'มา') {
+                        presentCount++;
+                    }
+                });
+
+                let tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-pink-50/30 transition";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-medium text-gray-800">${st.name}</td>
+                    <td class="p-3.5"><span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold">${st.level}</span></td>
+                    <td class="p-3.5 text-gray-600">${st.timeSlot}</td>
+                    <td class="p-3.5 text-center font-bold text-emerald-600">${presentCount} ครั้ง</td>
+                    <td class="p-3.5 text-center admin-only ${isAdminMode ? '' : 'hidden'}">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="openStudentModal(${st.id})" class="p-1.5 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition text-xs">✏️ แก้ไข</button>
+                            <button onclick="deleteStudent(${st.id})" class="p-1.5 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition text-xs">🗑️ ลบ</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Student Modal Management ---
+        function openStudentModal(id = null) {
+            populateDropdowns();
+            if (id) {
+                let st = students.find(s => s.id === id);
+                document.getElementById('studentModalTitle').innerText = "แก้ไขข้อมูลนักเรียน";
+                document.getElementById('editStudentId').value = st.id;
+                document.getElementById('inputStudentName').value = st.name;
+                document.getElementById('inputStudentLevel').value = st.level;
+                document.getElementById('inputStudentTimeSlot').value = st.timeSlot;
+                document.getElementById('inputStudentFee').value = st.fee;
+            } else {
+                document.getElementById('studentModalTitle').innerText = "เพิ่มนักเรียนใหม่";
+                document.getElementById('editStudentId').value = "";
+                document.getElementById('inputStudentName').value = "";
+                document.getElementById('inputStudentFee').value = "1500";
+            }
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        function saveStudentData() {
+            let id = document.getElementById('editStudentId').value;
+            let name = document.getElementById('inputStudentName').value.trim();
+            let level = document.getElementById('inputStudentLevel').value;
+            let timeSlot = document.getElementById('inputStudentTimeSlot').value;
+            let fee = parseFloat(document.getElementById('inputStudentFee').value) || 0;
+
+            if (!name) {
+                alert("กรุณากรอกชื่อนักเรียน");
+                return;
+            }
+
+            if (id) {
+                let st = students.find(s => s.id == id);
+                st.name = name;
+                st.level = level;
+                st.timeSlot = timeSlot;
+                st.fee = fee;
+            } else {
+                let newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+                students.push({ id: newId, name, level, timeSlot, fee, paid: false });
+            }
+
+            localStorage.setItem('kruNaan_students', JSON.stringify(students));
+            closeStudentModal();
+            renderStudentTable();
+            renderScheduleTable();
+            renderPaymentTable();
+        }
+
+        function deleteStudent(id) {
+            if (confirm("คุณต้องการลบนักเรียนรายนี้ใช่หรือไม่?")) {
+                students = students.filter(s => s.id !== id);
+                localStorage.setItem('kruNaan_students', JSON.stringify(students));
+                renderStudentTable();
+                renderScheduleTable();
+                renderPaymentTable();
+            }
+        }
+
+        // --- Render Payment Table ---
+        function renderPaymentTable() {
+            let tbody = document.getElementById('paymentTableBody');
+            tbody.innerHTML = '';
+
+            let paidCount = students.filter(s => s.paid).length;
+            document.getElementById('paidTotalCount').innerText = `${paidCount}/${students.length}`;
+
+            students.forEach(st => {
+                let tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-pink-50/30 transition";
+                
+                // Show/hide fee based on Admin Mode
+                let feeColumnHtml = isAdminMode ? `<td class="p-3.5 font-semibold text-gray-700">${st.fee.toLocaleString()} บาท</td>` : `<td class="p-3.5 text-gray-400 italic admin-only hidden">- ซ่อนข้อมูล -</td>`;
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-medium text-gray-800">${st.name}</td>
+                    <td class="p-3.5"><span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold">${st.level}</span></td>
+                    <td class="p-3.5 text-gray-600">${st.timeSlot}</td>
+                    ${feeColumnHtml}
+                    <td class="p-3.5 text-center">
+                        <button onclick="togglePayment(${st.id})" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${st.paid ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-rose-100 text-rose-700 border border-rose-300'}">
+                            ${st.paid ? '✅ ชำระแล้ว' : '⏳ ยังไม่ชำระ'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function togglePayment(id) {
+            if (!isAdminMode) {
+                alert("เฉพาะคุณครูที่สามารถเปลี่ยนแปลงสถานะการชำระเงินได้");
+                return;
+            }
+            let st = students.find(s => s.id === id);
+            if (st) {
+                st.paid = !st.paid;
+                localStorage.setItem('kruNaan_students', JSON.stringify(students));
+                renderPaymentTable();
+            }
+        }
+
+        // --- Render Level Table (Admin) ---
+        function renderLevelTable() {
+            let tbody = document.getElementById('levelTableBody');
+            tbody.innerHTML = '';
+
+            levels.forEach((lvl, idx) => {
+                let tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100 hover:bg-purple-50/30 transition";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-medium text-gray-800">${lvl}</td>
+                    <td class="p-3.5 text-center">
+                        <button onclick="deleteLevel(${idx})" class="p-1.5 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition text-xs">🗑️ ลบ</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openLevelModal() {
+            document.getElementById('inputLevelName').value = "";
+            document.getElementById('levelModal').classList.remove('hidden');
+        }
+
+        function closeLevelModal() {
+            document.getElementById('levelModal').classList.add('hidden');
+        }
+
+        function saveLevelData() {
+            let name = document.getElementById('inputLevelName').value.trim();
+            if (!name) {
+                alert("กรุณากรอกชื่อระดับชั้น");
+                return;
+            }
+            if (levels.includes(name)) {
+                alert("ระดับชั้นนี้มีอยู่แล้วในระบบ");
+                return;
+            }
+            levels.push(name);
+            localStorage.setItem('kruNaan_levels', JSON.stringify(levels));
+            closeLevelModal();
+            renderLevelTable();
+            populateDropdowns();
+        }
+
+        function deleteLevel(idx) {
+            if (levels.length <= 1) {
+                alert("ต้องมีระดับชั้นอย่างน้อย 1 ระดับในระบบ");
+                return;
+            }
+            if (confirm(`คุณต้องการลบระดับชั้น "${levels[idx]}" ใช่หรือไม่?`)) {
+                levels.splice(idx, 1);
+                localStorage.setItem('kruNaan_levels', JSON.stringify(levels));
+                renderLevelTable();
+                populateDropdowns();
+            }
+        }
+
+        // --- Month Picker Change ---
+        function changeMonth(val) {
+            if(!val) return;
+            let parts = val.split('-');
+            let year = parseInt(parts[0]) + 543;
+            let monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            let mName = monthNames[parseInt(parts[1]) - 1];
+            document.getElementById('currentMonthTitle').innerText = `ตารางเรียนเดือน ${mName} ${year}`;
+        }
+    </script>
+</body>
+</html>
