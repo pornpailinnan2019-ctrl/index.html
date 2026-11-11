@@ -27,10 +27,10 @@
 
             <!-- ปุ่มสลับโหมด -->
             <div class="flex items-center bg-white p-1 rounded-2xl shadow-inner border border-pink-200">
-                <button onclick="switchRole('student')" id="btnStudent" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500 text-white shadow">
+                <button onclick="switchRole('student')" id="btnStudent" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500 text-white shadow transition">
                     🎓 โหมดนักเรียน
                 </button>
-                <button onclick="switchRole('teacher')" id="btnTeacher" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600">
+                <button onclick="switchRole('teacher')" id="btnTeacher" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 transition">
                     👩‍🏫 โหมดครู (PIN)
                 </button>
             </div>
@@ -44,13 +44,13 @@
 
         <!-- Tabs -->
         <div class="flex border-b border-pink-100 mb-6 gap-2 overflow-x-auto pb-2">
-            <button onclick="switchTab('schedule')" id="tabSchedule" class="px-5 py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-md">
+            <button onclick="switchTab('schedule')" id="tabSchedule" class="px-5 py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-md transition">
                 📅 ตารางเรียนหลัก
             </button>
-            <button onclick="switchTab('roster')" id="tabRoster" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-sky-200">
+            <button onclick="switchTab('roster')" id="tabRoster" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-sky-200 transition">
                 👥 รายชื่อ & เช็คชื่อ
             </button>
-            <button onclick="switchTab('payment')" id="tabPayment" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-emerald-200">
+            <button onclick="switchTab('payment')" id="tabPayment" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-emerald-200 transition">
                 💳 ชำระค่าเรียนพิเศษ
             </button>
         </div>
@@ -91,4 +91,113 @@
                             <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 1</span></td>
                         </tr>
                         <tr>
-                            <td class
+                            <td class="p-3 font-bold text-sky-900 bg-sky-50/50 text-center">17.00 - 19.00 น.</td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 2</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 2</span></td>
+                            <td class="p-3 text-center"><span class="bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-bold">งดเรียน</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 2</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- หมายเหตุ -->
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 shadow-sm">
+                <h3 class="font-bold text-amber-800 mb-3">📢 หมายเหตุสำคัญ</h3>
+                <ul class="space-y-2 text-sm text-amber-900">
+                    <li class="flex items-start gap-2"><span class="text-pink-500 font-bold">✓</span> วันที่ 15 พฤศจิกายน 2569 งดเรียนเฉพาะระดับประถมศึกษา และ ม.ต้น</li>
+                    <li class="flex items-start gap-2"><span class="text-pink-500 font-bold">✓</span> วันที่ 21 พฤศจิกายน 2569 งดเรียน ตั้งแต่เวลา 13.00 - 19.00 น.</li>
+                    <li class="flex items-start gap-2"><span class="text-pink-500 font-bold">✓</span> วันที่ 22, 28 และ 29 พฤศจิกายน 2569 เรียนตามตารางปกติ</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- CONTENT 2: ROSTER -->
+        <div id="contentRoster" class="hidden space-y-4">
+            <h2 class="text-lg font-bold text-pink-600">👥 รายชื่อนักเรียนในคลาส & เช็คชื่อ</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-sky-50/60 border-2 border-sky-100 rounded-3xl p-4 shadow-sm">
+                    <div class="bg-sky-200 p-3 rounded-2xl font-bold text-sky-900 mb-3">📚 ประถม / ม.ต้น</div>
+                    <div class="space-y-2 text-sm">
+                        <div class="bg-white p-3 rounded-2xl border flex justify-between items-center">
+                            <div><p class="font-bold">ด.ช. ภูมิใจ (น้องภูมิ)</p><span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">มาแล้ว: <span id="count_s1">3</span> คาบ</span></div>
+                            <div id="action_s1" class="hidden flex gap-1"><button onclick="addAtt('s1')" class="bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-xl font-bold">+ มา</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT 3: PAYMENT -->
+        <div id="contentPayment" class="hidden space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <h2 class="text-lg font-bold text-pink-600">💳 สถานะการชำระค่าเรียนพิเศษ</h2>
+                <div id="teacherRevenue" class="hidden bg-emerald-100 text-emerald-900 px-4 py-2 rounded-xl text-sm font-bold">
+                    💰 รายได้รวม: 1,200 / 1,200 บาท
+                </div>
+            </div>
+            <div class="bg-white border-2 border-pink-100 rounded-3xl p-4 shadow-sm">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b text-slate-400 text-xs">
+                            <th class="pb-2">ชื่อนักเรียน</th>
+                            <th class="pb-2 text-right">จำนวนเงิน</th>
+                            <th class="pb-2 text-center">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="py-3 font-semibold">ด.ช. ภูมิใจ เรียนดี (น้องภูมิ)</td>
+                            <td class="py-3 text-right font-bold">1,200 บาท</td>
+                            <td class="py-3 text-center"><span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-xl text-xs font-bold">✅ ชำระแล้ว</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PIN MODAL -->
+        <div id="pinModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-pink-200">
+                <h3 class="text-lg font-bold text-pink-600 mb-2 text-center">👩‍🏫 รหัสผ่านโหมดครู</h3>
+                <p class="text-xs text-slate-500 text-center mb-4">รหัสผ่านคือ: 123456</p>
+                <input type="password" id="pinBox" placeholder="••••••" class="w-full text-center text-2xl p-3 border-2 border-pink-200 rounded-2xl mb-3 font-bold" maxlength="6">
+                <div class="flex gap-2">
+                    <button onclick="closePin()" class="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-sm">ยกเลิก</button>
+                    <button onclick="verifyPinCode()" class="flex-1 bg-pink-500 text-white py-3 rounded-2xl font-bold text-sm">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center border-t border-pink-100 pt-4 text-xs text-pink-600 font-bold">
+            💖 ครูแนน ขอเป็นกำลังใจให้นักเรียนทุกคนนะคะ 💖
+        </div>
+    </div>
+
+    <script>
+        let currentRole = 'student';
+        let attendanceCount = 3;
+
+        function switchRole(role) {
+            if (role === 'teacher') {
+                document.getElementById('pinModal').classList.remove('hidden');
+            } else {
+                currentRole = 'student';
+                document.getElementById('btnStudent').className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500 text-white shadow transition";
+                document.getElementById('btnTeacher').className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 transition";
+                document.getElementById('roleDesc').innerText = "💡 โหมดนักเรียน: ดูตารางเรียน เช็คชื่อ และตรวจสอบค่าเรียนพิเศษ";
+                document.getElementById('teacherRevenue').classList.add('hidden');
+                document.querySelectorAll('[id^=action_]').forEach(el => el.classList.add('hidden'));
+                alert('สลับเป็นโหมดนักเรียนเรียบร้อย');
+            }
+        }
+
+        function closePin() {
+            document.getElementById('pinModal').classList.add('hidden');
+            document.getElementById('pinBox').value = '';
+        }
+
+        function verifyPinCode() {
+            const val = document.getElementById('pinBox').value;
+            if (val === '123456') {
