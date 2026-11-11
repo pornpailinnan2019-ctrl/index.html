@@ -156,8 +156,8 @@
                         <i class="fa-solid fa-users-rectangle"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg sm:text-xl font-bold text-gray-800">รายชื่อนักเรียนทั้งหมด</h2>
-                        <p class="text-xs text-gray-500">จัดการข้อมูลนักเรียน ระดับชั้น และเวลาเรียนที่ลงทะเบียน</p>
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-800">รายชื่อนักเรียนทั้งหมด & เช็คชื่อ</h2>
+                        <p class="text-xs text-gray-500">จัดการข้อมูลนักเรียน และบันทึกจำนวนครั้งที่มาเรียน (เฉพาะโหมดครู)</p>
                     </div>
                 </div>
                 <div class="teacher-only hidden">
@@ -176,7 +176,7 @@
                                 <th class="p-4 font-bold">ระดับชั้น</th>
                                 <th class="p-4 font-bold">เวลาเรียน / คอร์ส</th>
                                 <th class="p-4 font-bold text-center">มาเรียน (ครั้ง)</th>
-                                <th class="p-4 font-bold text-center teacher-only hidden">จัดการ</th>
+                                <th class="p-4 font-bold text-center teacher-only hidden">จัดการ / เช็คชื่อ</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody" class="text-xs sm:text-sm divide-y divide-gray-100">
@@ -397,15 +397,6 @@
             updateTeacherUI();
             updateDropdowns();
             renderAll();
-            
-            // Extra binding to guarantee clickability in all preview panes
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn) {
-                authBtn.onclick = function(e) {
-                    e.preventDefault();
-                    toggleAuthMode();
-                };
-            }
         };
 
         function saveData() {
@@ -755,25 +746,33 @@
             if(!tbody) return;
             let html = "";
             students.forEach((st, idx) => {
+                let teacherControlsHtml = isAdminMode ? `
+                    <div class="flex items-center justify-center gap-1">
+                        <button onclick="adjustAttendance(${st.id}, -1)" class="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold flex items-center justify-center transition" title="ลดจำนวนครั้ง">-</button>
+                        <button onclick="adjustAttendance(${st.id}, 1)" class="w-6 h-6 bg-pink-500 hover:bg-pink-600 text-white rounded text-xs font-bold flex items-center justify-center transition" title="เพิ่มจำนวนครั้ง">+</button>
+                    </div>
+                ` : '';
+
+                let actionColHtml = isAdminMode ? `
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="openStudentModal(${st.id})" class="text-blue-500 hover:text-blue-700 p-1.5" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteStudent(${st.id})" class="text-red-500 hover:text-red-700 p-1.5" title="ลบ"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                ` : '';
+
                 html += `
                     <tr class="hover:bg-gray-50/80 transition">
                         <td class="p-4 font-bold text-gray-800">${st.name}</td>
                         <td class="p-4"><span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-bold">${st.level}</span></td>
                         <td class="p-4 text-gray-600">${st.timeSlot}</td>
                         <td class="p-4 text-center font-bold text-purple-600">
-                            <div class="flex items-center justify-center gap-2">
-                                <span id="attCount-${st.id}">${attendance[st.id] || 0}</span>
-                                <div class="teacher-only ${isAdminMode ? '' : 'hidden'} inline-flex gap-1">
-                                    <button onclick="adjustAttendance(${st.id}, -1)" class="w-5 h-5 bg-gray-200 hover:bg-gray-300 rounded text-xs flex items-center justify-center">-</button>
-                                    <button onclick="adjustAttendance(${st.id}, 1)" class="w-5 h-5 bg-pink-500 hover:bg-pink-600 text-white rounded text-xs flex items-center justify-center">+</button>
-                                </div>
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                                <span class="text-base px-2 py-0.5 bg-purple-50 rounded-lg border border-purple-100" id="attCount-${st.id}">${attendance[st.id] || 0}</span>
+                                ${teacherControlsHtml}
                             </div>
                         </td>
                         <td class="p-4 text-center teacher-only ${isAdminMode ? '' : 'hidden'}">
-                            <div class="flex items-center justify-center gap-2">
-                                <button onclick="openStudentModal(${st.id})" class="text-blue-500 hover:text-blue-700 p-1.5" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteStudent(${st.id})" class="text-red-500 hover:text-red-700 p-1.5" title="ลบ"><i class="fa-solid fa-trash"></i></button>
-                            </div>
+                            ${actionColHtml}
                         </td>
                     </tr>
                 `;
@@ -783,6 +782,10 @@
         }
 
         function adjustAttendance(studentId, delta) {
+            if(!isAdminMode) {
+                alert("เฉพาะคุณครูเท่านั้นที่สามารถบันทึกหรือเช็คชื่อได้");
+                return;
+            }
             if(!attendance[studentId]) attendance[studentId] = 0;
             attendance[studentId] += delta;
             if(attendance[studentId] < 0) attendance[studentId] = 0;
