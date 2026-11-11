@@ -17,10 +17,109 @@
         body { font-family: 'Kanit', sans-serif; }
     </style>
 </head>
-<body class="bg-sky-50 text-slate-700 min-t-screen">
+<body class="bg-sky-50 text-slate-700 min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
         function App() {
             // State พื้นฐาน
-            const [role
+            const [role, setRole] = React.useState('student'); // 'student' หรือ 'teacher'
+            const [showPinModal, setShowPinModal] = React.useState(false);
+            const [pinInput, setPinInput] = React.useState('');
+            const [pinError, setPinError] = React.useState('');
+            const [activeTab, setActiveTab] = React.useState('schedule'); // 'schedule', 'roster', 'payment'
+            const [toastMessage, setToastMessage] = React.useState('');
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 3000);
+            };
+
+            // ข้อมูลเดือน/ปี
+            const [scheduleMonthYear, setScheduleMonthYear] = React.useState('พฤศจิกายน 2569');
+            const [showEditMonthModal, setShowEditMonthModal] = React.useState(false);
+            const [newMonthYearInput, setNewMonthYearInput] = React.useState('');
+
+            // ข้อมูลตารางเรียน (วันและเวลา)
+            const [columns, setColumns] = React.useState([
+                { id: 'col1', date: '14 พ.ย. 69 (ส.)' },
+                { id: 'col2', date: '15 พ.ย. 69 (อ.)' },
+                { id: 'col3', date: '21 พ.ย. 69 (ส.)' },
+                { id: 'col4', date: '22, 28, 29 พ.ย. 69 (อ./ส.)' }
+            ]);
+
+            const [timeSlots, setTimeSlots] = React.useState([
+                { id: 't1', time: '10.00 - 12.00 น.', data: { col1: 'ประถม / ม.ต้น', col2: 'งดเรียน (ประถม / ม.ต้น)', col3: 'ประถม / ม.ต้น', col4: 'ประถม / ม.ต้น' } },
+                { id: 't2', time: '13.00 - 15.00 น.', data: { col1: 'ม.5 - ม.6', col2: 'ม.5 - ม.6', col3: 'งดเรียน', col4: 'ม.5 - ม.6' } },
+                { id: 't3', time: '15.00 - 17.00 น.', data: { col1: 'ม.4 กลุ่ม 1', col2: 'ม.4 กลุ่ม 1', col3: 'งดเรียน', col4: 'ม.4 กลุ่ม 1' } },
+                { id: 't4', time: '17.00 - 19.00 น.', data: { col1: 'ม.4 กลุ่ม 2', col2: 'ม.4 กลุ่ม 2', col3: 'งดเรียน', col4: 'ม.4 กลุ่ม 2' } }
+            ]);
+
+            // หมายเหตุ
+            const [notes, setNotes] = React.useState([
+                "วันที่ 15 พฤศจิกายน 2569 งดเรียนเฉพาะระดับประถมศึกษา และ ม.ต้น",
+                "วันที่ 21 พฤศจิกายน 2569 งดเรียน ตั้งแต่เวลา 13.00 - 19.00 น.",
+                "วันที่ 22, 28 และ 29 พฤศจิกายน 2569 เรียนตามตารางปกติ"
+            ]);
+
+            // รายชื่อนักเรียน & เช็คชื่อ & ค่าเรียน
+            const [classesList, setClassesList] = React.useState([
+                { 
+                    id: 'c1', 
+                    className: 'ประถม / ม.ต้น', 
+                    students: [
+                        { id: 's1', name: 'ด.ช. ภูมิใจ เรียนดี', nickname: 'น้องภูมิ', attended: 3, paid: true, amount: 1200 },
+                        { id: 's2', name: 'ด.ญ. ฟ้าใส ใจงาม', nickname: 'น้องฟ้า', attended: 2, paid: false, amount: 1200 }
+                    ]
+                },
+                { 
+                    id: 'c2', 
+                    className: 'ม.5 - ม.6', 
+                    students: [
+                        { id: 's3', name: 'นาย วินิจ ฉลาดล้ำ', nickname: 'พี่วิน', attended: 4, paid: true, amount: 1500 },
+                        { id: 's4', name: 'น.ส. มายด์ สุข,', nickname: 'น้องมายด์', attended: 3, paid: true, amount: 1500 }
+                    ]
+                },
+                { 
+                    id: 'c3', 
+                    className: 'ม.4 กลุ่ม 1', 
+                    students: [
+                        { id: 's5', name: 'นาย กรณ์ เก่งกล้า', nickname: 'น้องกรณ์', attended: 2, paid: false, amount: 1500 }
+                    ]
+                },
+                { 
+                    id: 'c4', 
+                    className: 'ม.4 กลุ่ม 2', 
+                    students: [
+                        { id: 's6', name: 'นาย พีท พงศกร', nickname: 'น้องพีท', attended: 3, paid: true, amount: 1500 }
+                    ]
+                }
+            ]);
+
+            // Modal เช็คชื่อนักเรียน
+            const [selectedClassForCheckin, setSelectedClassForCheckin] = React.useState(null);
+
+            // Modal เพิ่ม/แก้ไขคลาสในส่วนรายชื่อ
+            const [showAddClassModal, setShowAddClassModal] = React.useState(false);
+            const [newClassName, setNewClassName] = React.useState('');
+
+            // ฟังก์ชันสลับโหมด
+            const handleRoleSwitch = (targetRole) => {
+                if (targetRole === 'teacher') {
+                    setShowPinModal(true);
+                    setPinInput('');
+                    setPinError('');
+                } else {
+                    setRole('student');
+                    showToast('สลับเป็นโหมดนักเรียน (ดูอย่างเดียว)');
+                }
+            };
+
+            const verifyPin = (e) => {
+                e.preventDefault();
+                if (pinInput === '123456') {
+                    setRole('teacher');
+                    setShowPinModal(false);
+                    showToast('เข้าสู่โหมดคุณครูสำเร็จ (แก้ไขข้อมูลได้ทั้งหมด)');
+                } else {
+                    setPinError('รหัสผ่านไม่ถูกต้อง (รหัสผ่านคือ 1
