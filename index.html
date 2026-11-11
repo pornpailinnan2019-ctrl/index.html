@@ -4,595 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เรียนพิเศษคณิตศาสตร์ ครูแนน</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel -->
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Kanit -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; }
     </style>
 </head>
-<body class="bg-sky-50 text-slate-700 min-h-screen">
-    <div id="root"></div>
+<body class="bg-sky-50 text-slate-700 min-h-screen p-4 md:p-6">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl p-4 md:p-6 border-4 border-pink-200">
+        
+        <!-- Header & Role Switcher -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-pink-100 to-sky-100 p-4 rounded-2xl mb-6 gap-4 shadow-sm">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">👩‍🏫📐</span>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-pink-600">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
+                    <p class="text-sm text-sky-600 font-medium">ระบบจัดการตารางเรียนและเช็คชื่อนักเรียน</p>
+                </div>
+            </div>
 
-    <script type="text/babel">
-        function App() {
-            const [role, setRole] = React.useState('student');
-            const [showPinModal, setShowPinModal] = React.useState(false);
-            const [pinInput, setPinInput] = React.useState('');
-            const [pinError, setPinError] = React.useState(false);
-            const [activeTab, setActiveTab] = React.useState('schedule');
-            const [toastMessage, setToastMessage] = React.useState('');
+            <!-- ปุ่มสลับโหมด -->
+            <div class="flex items-center bg-white p-1 rounded-2xl shadow-inner border border-pink-200">
+                <button onclick="switchRole('student')" id="btnStudent" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500 text-white shadow">
+                    🎓 โหมดนักเรียน
+                </button>
+                <button onclick="switchRole('teacher')" id="btnTeacher" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600">
+                    👩‍🏫 โหมดครู (PIN)
+                </button>
+            </div>
+        </div>
 
-            const showToast = (msg) => {
-                setToastMessage(msg);
-                setTimeout(() => setToastMessage(''), 3000);
-            };
+        <!-- Banner -->
+        <div class="text-center bg-gradient-to-r from-sky-400 to-blue-500 text-white py-4 px-4 rounded-2xl mb-6 shadow-md">
+            <h2 class="text-lg md:text-xl font-bold">🗓️ ตารางเรียนพิเศษ ประจำเดือน พฤศจิกายน 2569</h2>
+            <p id="roleDesc" class="text-xs text-sky-100 mt-1">💡 โหมดนักเรียน: ดูตารางเรียน เช็คชื่อ และตรวจสอบค่าเรียนพิเศษ</p>
+        </div>
 
-            const [scheduleMonthYear, setScheduleMonthYear] = React.useState('พฤศจิกายน 2569');
-            const [showEditMonthModal, setShowEditMonthModal] = React.useState(false);
-            const [newMonthYearInput, setNewMonthYearInput] = React.useState('');
+        <!-- Tabs -->
+        <div class="flex border-b border-pink-100 mb-6 gap-2 overflow-x-auto pb-2">
+            <button onclick="switchTab('schedule')" id="tabSchedule" class="px-5 py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-md">
+                📅 ตารางเรียนหลัก
+            </button>
+            <button onclick="switchTab('roster')" id="tabRoster" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-sky-200">
+                👥 รายชื่อ & เช็คชื่อ
+            </button>
+            <button onclick="switchTab('payment')" id="tabPayment" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-emerald-200">
+                💳 ชำระค่าเรียนพิเศษ
+            </button>
+        </div>
 
-            const [columns, setColumns] = React.useState([
-                { id: 'col1', date: '14 พ.ย. 69 (ส.)' },
-                { id: 'col2', date: '15 พ.ย. 69 (อ.)' },
-                { id: 'col3', date: '21 พ.ย. 69 (ส.)' },
-                { id: 'col4', date: '22, 28, 29 พ.ย. 69 (อ./ส.)' }
-            ]);
-
-            const [timeSlots, setTimeSlots] = React.useState([
-                { id: 't1', time: '10.00 - 12.00 น.', data: { col1: 'ประถม / ม.ต้น', col2: 'งดเรียน (ประถม / ม.ต้น)', col3: 'ประถม / ม.ต้น', col4: 'ประถม / ม.ต้น' } },
-                { id: 't2', time: '13.00 - 15.00 น.', data: { col1: 'ม.5 - ม.6', col2: 'ม.5 - ม.6', col3: 'งดเรียน', col4: 'ม.5 - ม.6' } },
-                { id: 't3', time: '15.00 - 17.00 น.', data: { col1: 'ม.4 กลุ่ม 1', col2: 'ม.4 กลุ่ม 1', col3: 'งดเรียน', col4: 'ม.4 กลุ่ม 1' } },
-                { id: 't4', time: '17.00 - 19.00 น.', data: { col1: 'ม.4 กลุ่ม 2', col2: 'ม.4 กลุ่ม 2', col3: 'งดเรียน', col4: 'ม.4 กลุ่ม 2' } }
-            ]);
-
-            const [notes, setNotes] = React.useState([
-                "วันที่ 15 พฤศจิกายน 2569 งดเรียนเฉพาะระดับประถมศึกษา และ ม.ต้น",
-                "วันที่ 21 พฤศจิกายน 2569 งดเรียน ตั้งแต่เวลา 13.00 - 19.00 น.",
-                "วันที่ 22, 28 และ 29 พฤศจิกายน 2569 เรียนตามตารางปกติ"
-            ]);
-
-            const [classesList, setClassesList] = React.useState([
-                { 
-                    id: 'c1', 
-                    className: 'ประถม / ม.ต้น', 
-                    students: [
-                        { id: 's1', name: 'ด.ช. ภูมิใจ เรียนดี', nickname: 'น้องภูมิ', attended: 3, paid: true, amount: 1200 },
-                        { id: 's2', name: 'ด.ญ. ฟ้าใส ใจงาม', nickname: 'น้องฟ้า', attended: 2, paid: false, amount: 1200 }
-                    ]
-                },
-                { 
-                    id: 'c2', 
-                    className: 'ม.5 - ม.6', 
-                    students: [
-                        { id: 's3', name: 'นาย วินิจ ฉลาดล้ำ', nickname: 'พี่วิน', attended: 4, paid: true, amount: 1500 },
-                        { id: 's4', name: 'น.ส. มายด์ สุขใจ', nickname: 'น้องมายด์', attended: 3, paid: true, amount: 1500 }
-                    ]
-                },
-                { 
-                    id: 'c3', 
-                    className: 'ม.4 กลุ่ม 1', 
-                    students: [
-                        { id: 's5', name: 'นาย กรณ์ เก่งกล้า', nickname: 'น้องกรณ์', attended: 2, paid: false, amount: 1500 }
-                    ]
-                },
-                { 
-                    id: 'c4', 
-                    className: 'ม.4 กลุ่ม 2', 
-                    students: [
-                        { id: 's6', name: 'นาย พีท พงศกร', nickname: 'น้องพีท', attended: 3, paid: true, amount: 1500 }
-                    ]
-                }
-            ]);
-
-            const [selectedClassForCheckin, setSelectedClassForCheckin] = React.useState(null);
-            const [showAddClassModal, setShowAddClassModal] = React.useState(false);
-            const [newClassName, setNewClassName] = React.useState('');
-            const [editingFeeStudent, setEditingFeeStudent] = React.useState(null);
-
-            // ฟังก์ชันจำลองการซิงค์ข้อมูลไป Google Sheets ผ่าน google.script.run (ถ้ามี)
-            const syncToSheets = (action, payload) => {
-                if (typeof google !== 'undefined' && google.script && google.script.run) {
-                    // ส่งข้อมูลไปบันทึกหลังบ้าน
-                    // google.script.run.withSuccessHandler(() => {}).saveToServer(action, payload);
-                }
-            };
-
-            const handleRoleSwitch = (targetRole) => {
-                if (targetRole === 'teacher') {
-                    setShowPinModal(true);
-                    setPinInput('');
-                    setPinError(false);
-                } else {
-                    setRole('student');
-                    showToast('สลับเป็นโหมดนักเรียน (ดูอย่างเดียว)');
-                }
-            };
-
-            const verifyPin = (e) => {
-                e.preventDefault();
-                if (pinInput === '123456') {
-                    setRole('teacher');
-                    setShowPinModal(false);
-                    showToast('เข้าสู่โหมดคุณครูสำเร็จ');
-                } else {
-                    setPinError(true);
-                }
-            };
-
-            const addColumn = () => {
-                const newColId = 'col_' + Date.now();
-                const newCols = [...columns, { id: newColId, date: 'วันใหม่' }];
-                setColumns(newCols);
-                const updatedSlots = timeSlots.map(slot => ({
-                    ...slot,
-                    data: { ...slot.data, [newColId]: 'ปกติ' }
-                }));
-                setTimeSlots(updatedSlots);
-                showToast('เพิ่มช่องวันที่เรียนใหม่แล้ว');
-                syncToSheets('addColumn', { newCols });
-            };
-
-            const deleteColumn = (colId) => {
-                setColumns(columns.filter(c => c.id !== colId));
-                showToast('ลบช่องวันที่เรียนแล้ว');
-            };
-
-            const toggleAttendance = (classId, studentId) => {
-                if (role !== 'teacher') return;
-                setClassesList(classesList.map(cls => {
-                    if (cls.id === classId) {
-                        const updatedStudents = cls.students.map(s => {
-                            if (s.id === studentId) {
-                                return { ...s, attended: s.attended + 1 };
-                            }
-                            return s;
-                        });
-                        return { ...cls, students: updatedStudents };
-                    }
-                    return cls;
-                }));
-                if (selectedClassForCheckin && selectedClassForCheckin.id === classId) {
-                    setTimeout(() => {
-                        const updatedCls = classesList.find(c => c.id === classId);
-                        if (updatedCls) {
-                            setSelectedClassForCheckin({
-                                ...updatedCls,
-                                students: updatedCls.students.map(s => s.id === studentId ? { ...s, attended: s.attended + 1 } : s)
-                            });
-                        }
-                    }, 10);
-                }
-                showToast('เช็คชื่อเข้าเรียนสำเร็จ (+1)');
-                syncToSheets('updateAttendance', { classId, studentId });
-            };
-
-            const decreaseAttendance = (classId, studentId) => {
-                if (role !== 'teacher') return;
-                setClassesList(classesList.map(cls => {
-                    if (cls.id === classId) {
-                        const updatedStudents = cls.students.map(s => {
-                            if (s.id === studentId && s.attended > 0) {
-                                return { ...s, attended: s.attended - 1 };
-                            }
-                            return s;
-                        });
-                        return { ...cls, students: updatedStudents };
-                    }
-                    return cls;
-                }));
-                if (selectedClassForCheckin && selectedClassForCheckin.id === classId) {
-                    setTimeout(() => {
-                        const updatedCls = classesList.find(c => c.id === classId);
-                        if (updatedCls) {
-                            setSelectedClassForCheckin({...updatedCls});
-                        }
-                    }, 10);
-                }
-                showToast('ลดจำนวนคาบเรียนแล้ว');
-            };
-
-            const addStudentToClass = (classId, studentName, nickname, amount) => {
-                setClassesList(classesList.map(cls => {
-                    if (cls.id === classId) {
-                        const newStudent = {
-                            id: 's_' + Date.now(),
-                            name: studentName,
-                            nickname: nickname,
-                            attended: 0,
-                            paid: false,
-                            amount: Number(amount) || 1200
-                        };
-                        const updatedCls = { ...cls, students: [...cls.students, newStudent] };
-                        if (selectedClassForCheckin && selectedClassForCheckin.id === classId) {
-                            setSelectedClassForCheckin(updatedCls);
-                        }
-                        return updatedCls;
-                    }
-                    return cls;
-                }));
-                showToast('เพิ่มนักเรียนเรียบร้อยแล้ว');
-            };
-
-            const addNewClass = () => {
-                if (!newClassName.trim()) return;
-                const newClassObj = {
-                    id: 'c_' + Date.now(),
-                    className: newClassName.trim(),
-                    students: []
-                };
-                setClassesList([...classesList, newClassObj]);
-                setNewClassName('');
-                setShowAddClassModal(false);
-                showToast('เพิ่มคลาสเรียนใหม่แล้ว');
-            };
-
-            const togglePaidStatus = (classId, studentId) => {
-                if (role !== 'teacher') return;
-                setClassesList(classesList.map(cls => {
-                    if (cls.id === classId) {
-                        return {
-                            ...cls,
-                            students: cls.students.map(s => s.id === studentId ? { ...s, paid: !s.paid } : s)
-                        };
-                    }
-                    return cls;
-                }));
-                showToast('อัปเดตสถานะการชำระเงินแล้ว');
-            };
-
-            const updateStudentFee = (classId, studentId, newAmount) => {
-                const amt = Number(newAmount) || 0;
-                setClassesList(classesList.map(cls => {
-                    if (cls.id === classId) {
-                        return {
-                            ...cls,
-                            students: cls.students.map(s => s.id === studentId ? { ...s, amount: amt } : s)
-                        };
-                    }
-                    return cls;
-                }));
-                setEditingFeeStudent(null);
-                showToast('อัปเดตยอดค่าเรียนพิเศษเรียบร้อยแล้ว');
-            };
-
-            const totalRevenue = classesList.reduce((acc, cls) => {
-                return acc + cls.students.reduce((sum, s) => sum + (s.paid ? s.amount : 0), 0);
-            }, 0);
-
-            const totalExpected = classesList.reduce((acc, cls) => {
-                return acc + cls.students.reduce((sum, s) => sum + s.amount, 0);
-            }, 0);
-
-            return (
-                <div className="max-w-4xl mx-auto p-4 md:p-6 bg-white shadow-xl rounded-3xl my-6 border-4 border-pink-200 relative">
-                    {toastMessage && (
-                        <div className="fixed top-5 right-5 bg-pink-600 text-white px-4 py-2 rounded-xl shadow-lg z-50 text-sm font-semibold">
-                            ✨ {toastMessage}
-                        </div>
-                    )}
-
-                    <div className="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-pink-100 to-sky-100 p-4 rounded-2xl mb-6 gap-4 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <span className="text-3xl">👩‍🏫📐</span>
-                            <div>
-                                <h1 className="text-xl md:text-2xl font-bold text-pink-600">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
-                                <p className="text-sm text-sky-600 font-medium">ระบบจัดการตารางเรียนและเช็คชื่อนักเรียน</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center bg-white p-1 rounded-2xl shadow-inner border border-pink-200">
-                            <button onClick={() => handleRoleSwitch('student')} className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${role === 'student' ? 'bg-sky-500 text-white shadow' : 'text-slate-600'}`}>
-                                🎓 โหมดนักเรียน
-                            </button>
-                            <button onClick={() => handleRoleSwitch('teacher')} className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${role === 'teacher' ? 'bg-pink-500 text-white shadow' : 'text-slate-600'}`}>
-                                👩‍🏫 โหมดครู (PIN)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="text-center bg-gradient-to-r from-sky-400 to-blue-500 text-white py-4 px-4 rounded-2xl mb-6 shadow-md relative">
-                        <h2 className="text-lg md:text-xl font-bold flex justify-center items-center gap-2 flex-wrap">
-                            <span>🗓️ ตารางเรียนพิเศษ ประจำเดือน {scheduleMonthYear}</span>
-                            {role === 'teacher' && (
-                                <button onClick={() => { setNewMonthYearInput(scheduleMonthYear); setShowEditMonthModal(true); }} className="bg-white text-pink-600 text-xs px-3 py-1 rounded-xl font-bold shadow">
-                                    ✏️ เปลี่ยนเดือน/ปี
-                                </button>
-                            )}
-                        </h2>
-                    </div>
-
-                    <div className="flex border-b border-pink-100 mb-6 gap-2 overflow-x-auto pb-2">
-                        <button onClick={() => setActiveTab('schedule')} className={`px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${activeTab === 'schedule' ? 'bg-gradient-to-r from-pink-500 to-rose-400 text-white' : 'bg-white text-slate-600 border border-pink-200'}`}>
-                            📅 ตารางเรียนหลัก
-                        </button>
-                        <button onClick={() => setActiveTab('roster')} className={`px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${activeTab === 'roster' ? 'bg-gradient-to-r from-sky-500 to-indigo-400 text-white' : 'bg-white text-slate-600 border border-sky-200'}`}>
-                            👥 รายชื่อ & เช็คชื่อ
-                        </button>
-                        <button onClick={() => setActiveTab('payments')} className={`px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${activeTab === 'payments' ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-white' : 'bg-white text-slate-600 border border-emerald-200'}`}>
-                            💳 ชำระค่าเรียนพิเศษ
-                        </button>
-                    </div>
-
-                    {activeTab === 'schedule' && (
-                        <div>
-                            <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 shadow-sm mb-6 bg-white">
-                                <table className="w-full text-left border-collapse min-w-[700px]">
-                                    <thead>
-                                        <tr className="bg-sky-100 text-sky-900 border-b-2 border-sky-200">
-                                            <th className="p-3 text-center w-36 font-semibold">เวลา</th>
-                                            {columns.map(col => (
-                                                <th key={col.id} className="p-3 text-center font-semibold relative">
-                                                    {role === 'teacher' ? (
-                                                        <div className="flex flex-col gap-1 items-center">
-                                                            <input type="text" value={col.date} onChange={(e) => setColumns(columns.map(c => c.id === col.id ? {...c, date: e.target.value} : c))} className="bg-white border border-sky-300 rounded p-1 text-xs text-center font-bold w-full" />
-                                                            <button onClick={() => deleteColumn(col.id)} className="text-red-500 text-[10px] hover:underline font-bold">[ลบวัน]</button>
-                                                        </div>
-                                                    ) : col.date}
-                                                </th>
-                                            ))}
-                                            {role === 'teacher' && (
-                                                <th className="p-2 text-center w-24">
-                                                    <button onClick={addColumn} className="bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-xl hover:bg-sky-600 shadow font-bold">
-                                                        + เพิ่มวัน
-                                                    </button>
-                                                </th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {timeSlots.map(slot => (
-                                            <tr key={slot.id} className="border-b border-sky-50">
-                                                <td className="p-3 font-medium text-sky-900 bg-sky-50/50 text-center">{slot.time}</td>
-                                                {columns.map(col => {
-                                                    const cellVal = slot.data[col.id] || '';
-                                                    const isOff = cellVal.includes('งดเรียน');
-                                                    return (
-                                                        <td key={col.id} className="p-3 text-center">
-                                                            {role === 'teacher' ? (
-                                                                <input type="text" value={cellVal} onChange={(e) => {
-                                                                    const updated = timeSlots.map(s => s.id === slot.id ? {...s, data: {...s.data, [col.id]: e.target.value}} : s);
-                                                                    setTimeSlots(updated);
-                                                                }} className={`w-full p-2 rounded-xl text-center text-sm border font-medium ${isOff ? 'bg-pink-100 text-pink-600 border-pink-300 font-bold' : 'bg-white text-slate-700 border-sky-200'}`} />
-                                                            ) : (
-                                                                <span className={`inline-block px-3 py-1.5 rounded-xl text-sm font-medium ${isOff ? 'bg-pink-100 text-pink-600 border border-pink-200 font-bold' : 'bg-sky-100/60 text-sky-900 font-medium'}`}>{cellVal}</span>
-                                                            )}
-                                                        </td>
-                                                    );
-                                                })}
-                                                {role === 'teacher' && <td></td>}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 shadow-sm">
-                                <h3 className="font-bold text-amber-800 mb-3">📢 หมายเหตุสำคัญ</h3>
-                                <ul className="space-y-2.5 text-sm text-amber-900">
-                                    {notes.map((note, index) => (
-                                        <li key={index} className="flex items-start gap-2">
-                                            <span className="text-pink-500 font-bold">✓</span>
-                                            {role === 'teacher' ? (
-                                                <input type="text" value={note} onChange={(e) => {
-                                                    const newNotes = [...notes];
-                                                    newNotes[index] = e.target.value;
-                                                    setNotes(newNotes);
-                                                }} className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1 text-sm font-medium" />
-                                            ) : <span>{note}</span>}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'roster' && (
-                        <div>
-                            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                                <h2 className="text-lg font-bold text-pink-600">👥 รายชื่อนักเรียนในคลาส & เช็คชื่อ</h2>
-                                {role === 'teacher' && (
-                                    <button onClick={() => setShowAddClassModal(true)} className="bg-pink-500 hover:bg-pink-600 text-white text-sm px-4 py-2.5 rounded-2xl shadow font-bold">
-                                        ➕ เพิ่มคลาสเรียนใหม่
-                                    </button>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {classesList.map(cls => (
-                                    <div key={cls.id} className="bg-sky-50/60 border-2 border-sky-100 rounded-3xl p-4 shadow-sm">
-                                        <div onClick={() => setSelectedClassForCheckin(cls)} className="bg-sky-200 hover:bg-sky-300 transition-all cursor-pointer p-3.5 rounded-2xl flex justify-between items-center mb-3 shadow-xs">
-                                            <span className="font-bold text-sky-900 text-base">📚 {cls.className}</span>
-                                            <span className="bg-white text-sky-800 text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs">{cls.students.length} คน (คลิกเช็คชื่อ 👆)</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {cls.students.map(s => (
-                                                <div key={s.id} className="bg-white p-3 rounded-2xl border border-sky-100 flex justify-between items-center shadow-xs">
-                                                    <div>
-                                                        <p className="font-bold text-sm text-slate-800">{s.name} ({s.nickname})</p>
-                                                        <span className="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">มาแล้ว: {s.attended} คาบ</span>
-                                                    </div>
-                                                    {role === 'teacher' && (
-                                                        <div className="flex gap-1.5">
-                                                            <button onClick={() => toggleAttendance(cls.id, s.id)} className="bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-xl font-bold">+ มา</button>
-                                                            <button onClick={() => decreaseAttendance(cls.id, s.id)} className="bg-rose-100 text-rose-600 text-xs px-2.5 py-1.5 rounded-xl font-bold">-</button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'payments' && (
-                        <div>
-                            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                                <h2 className="text-lg font-bold text-pink-600">💳 สถานะการชำระค่าเรียนพิเศษ</h2>
-                                {role === 'teacher' && (
-                                    <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 px-4 py-2.5 rounded-2xl text-sm font-bold shadow-xs">
-                                        💰 รายได้รวม: {totalRevenue.toLocaleString()} / {totalExpected.toLocaleString()} บาท
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-4">
-                                {classesList.map(cls => (
-                                    <div key={cls.id} className="bg-white border-2 border-pink-100 rounded-3xl p-4 shadow-sm">
-                                        <h3 className="font-bold text-pink-600 mb-3 text-sm">📚 คลาส: {cls.className}</h3>
-                                        <table className="w-full text-left text-sm">
-                                            <thead>
-                                                <tr className="border-b text-slate-400 text-xs">
-                                                    <th className="pb-2">ชื่อ - นามสกุล</th>
-                                                    <th className="pb-2">ชื่อเล่น</th>
-                                                    {role === 'teacher' && <th className="pb-2 text-right">จำนวนเงิน (แก้ไขได้)</th>}
-                                                    <th className="pb-2 text-center">สถานะ</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {cls.students.map(s => (
-                                                    <tr key={s.id} className="border-b last:border-none">
-                                                        <td className="py-3 font-semibold text-slate-800">{s.name}</td>
-                                                        <td className="py-3 text-slate-500">{s.nickname}</td>
-                                                        {role === 'teacher' && (
-                                                            <td className="py-3 text-right">
-                                                                <button 
-                                                                    onClick={() => setEditingFeeStudent({ classId: cls.id, studentId: s.id, amount: s.amount, name: s.name })}
-                                                                    className="bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 px-2.5 py-1 rounded-xl text-xs font-bold transition shadow-xs">
-                                                                    {s.amount.toLocaleString()} บาท ✏️
-                                                                </button>
-                                                            </td>
-                                                        )}
-                                                        <td className="py-3 text-center">
-                                                            {role === 'teacher' ? (
-                                                                <button onClick={() => togglePaidStatus(cls.id, s.id)} className={`px-3 py-1.5 rounded-xl text-xs font-bold ${s.paid ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
-                                                                    {s.paid ? '✅ ชำระแล้ว' : '❌ ยังไม่ชำระ'}
-                                                                </button>
-                                                            ) : (
-                                                                <span className={`px-3 py-1 rounded-xl text-xs font-bold ${s.paid ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                                                                    {s.paid ? '✅ ชำระแล้ว' : '❌ ยังไม่ชำระ'}
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {showPinModal && (
-                        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-pink-200">
-                                <h3 className="text-lg font-bold text-pink-600 mb-2 text-center">👩‍🏫 รหัสผ่านโหมดครู</h3>
-                                <p className="text-xs text-slate-500 text-center mb-4">รหัสผ่านคือ: 123456</p>
-                                <form onSubmit={verifyPin}>
-                                    <input type="password" maxLength="6" value={pinInput} onChange={(e) => setPinInput(e.target.value)} placeholder="••••••" className="w-full text-center text-2xl p-3 border-2 border-pink-200 rounded-2xl mb-3 font-bold" autoFocus />
-                                    {pinError && <p className="text-rose-500 text-xs text-center mb-3 font-bold">รหัสผ่านไม่ถูกต้อง (ใช้ 123456)</p>}
-                                    <div className="flex gap-2">
-                                        <button type="button" onClick={() => setShowPinModal(false)} className="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-sm">ยกเลิก</button>
-                                        <button type="submit" className="flex-1 bg-pink-500 text-white py-3 rounded-2xl font-bold text-sm shadow">ยืนยัน</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {showEditMonthModal && (
-                        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-sky-200">
-                                <h3 className="text-lg font-bold text-sky-900 mb-3 text-center">🗓️ เปลี่ยนเดือนและปี</h3>
-                                <input type="text" value={newMonthYearInput} onChange={(e) => setNewMonthYearInput(e.target.value)} className="w-full p-3 text-sm border-2 border-sky-200 rounded-2xl mb-4 font-bold text-center" />
-                                <div className="flex gap-2">
-                                    <button onClick={() => setShowEditMonthModal(false)} className="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-sm">ยกเลิก</button>
-                                    <button onClick={() => { if (!newMonthYearInput.trim()) return; setScheduleMonthYear(newMonthYearInput.trim()); setShowEditMonthModal(false); showToast('อัปเดตเรียบร้อย'); }} className="flex-1 bg-sky-500 text-white py-3 rounded-2xl font-bold text-sm">บันทึก</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {editingFeeStudent && (
-                        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-emerald-200">
-                                <h3 className="text-base font-bold text-emerald-800 mb-1">💳 แก้ไขยอดค่าเรียนพิเศษ</h3>
-                                <p className="text-xs text-slate-500 mb-3">นักเรียน: {editingFeeStudent.name}</p>
-                                <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    updateStudentFee(editingFeeStudent.classId, editingFeeStudent.studentId, e.target.feeAmount.value);
-                                }}>
-                                    <input 
-                                        type="number" 
-                                        name="feeAmount" 
-                                        defaultValue={editingFeeStudent.amount} 
-                                        className="w-full p-3 text-lg border-2 border-emerald-200 rounded-2xl mb-4 font-bold text-center" 
-                                        autoFocus 
-                                    />
-                                    <div className="flex gap-2">
-                                        <button type="button" onClick={() => setEditingFeeStudent(null)} className="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-sm">ยกเลิก</button>
-                                        <button type="submit" className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold text-sm shadow">บันทึก</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    {selectedClassForCheckin && (
-                        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-sky-200 max-h-[90vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-base font-bold text-sky-900">📋 เช็คชื่อ: {selectedClassForCheckin.className}</h3>
-                                    <button onClick={() => setSelectedClassForCheckin(null)} className="font-bold text-lg">✕</button>
-                                </div>
-                                <div className="space-y-3 mb-6">
-                                    {selectedClassForCheckin.students.map(s => (
-                                        <div key={s.id} className="bg-sky-50 p-3.5 rounded-2xl flex justify-between items-center">
-                                            <div>
-                                                <p className="font-bold text-sm text-slate-800">{s.name} ({s.nickname})</p>
-                                                <span className="text-xs text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full font-bold">มาแล้ว: {s.attended} คาบ</span>
-                                            </div>
-                                            {role === 'teacher' && (
-                                                <div className="flex gap-1.5">
-                                                    <button onClick={() => toggleAttendance(selectedClassForCheckin.id, s.id)} className="bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-xl font-bold">+ มา</button>
-                                                    <button onClick={() => decreaseAttendance(selectedClassForCheckin.id, s.id)} className="bg-rose-100 text-rose-600 text-xs px-2.5 py-1.5 rounded-xl font-bold">-</button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                                {role === 'teacher' && (
-                                    <div className="border-t pt-4">
-                                        <h4 className="text-xs font-bold text-slate-600 mb-2">➕ เพิ่มนักเรียนใหม่</h4>
-                                        <form onSubmit={(e) => {
-                                            e.preventDefault();
-                                            const form = e.target;
-                                            if (!form.sname.value) return;
-                                            addStudentToClass(selectedClassForCheckin.id, form.sname.value, form.snick.value, form.samt.value);
-                                            form.reset();
-                                        }} className="space-y-2">
-                                            <input type="text" name="sname" placeholder="ชื่อ - นามสกุล" className="w-full p-2.5 text-xs border rounded-xl" required />
-                                            <div className="flex gap-2">
-                                                <input type="text" name="snick" placeholder="ชื่อเล่น" className="flex-1 p-2.5 text-xs border rounded-xl" />
-                                                <input type="number" name="samt" placeholder="ค่าเรียน" defaultValue="1200" className="w-28 p-2.5 text-xs border rounded-xl" />
-                                            </div>
-                                            <button type="submit" className="w-full bg-pink-500 text-white text-xs py-2.5 rounded-xl font-bold shadow">บันทึก</button>
-                                        </form>
-                                    </div>
-                                )}
-                                <button onClick={() => setSelectedClassForCheckin(null)} className="w-full mt-4 bg-slate-100 text-slate-700 text-xs py-3 rounded-2xl font-bold">ปิดหน้าต่าง</button>
-                            </div>
-                        </div>
-                    )}
-
-                    {showAddClassModal && (
-                        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-pink-200">
-                                <h3 className="text-base font-bold text-pink-600 mb-3">➕ เพิ่มค
+        <!-- CONTENT 1: SCHEDULE -->
+        <div id="contentSchedule" class="space-y-6">
+            <div class="overflow-x-auto rounded-2xl border-2 border-sky-100 shadow-sm bg-white">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-sky-100 text-sky-900 border-b-2 border-sky-200">
+                            <th class="p-3 text-center w-36 font-semibold">เวลา</th>
+                            <th class="p-3 text-center font-semibold">14 พ.ย. 69 (ส.)</th>
+                            <th class="p-3 text-center font-semibold">15 พ.ย. 69 (อ.)</th>
+                            <th class="p-3 text-center font-semibold">21 พ.ย. 69 (ส.)</th>
+                            <th class="p-3 text-center font-semibold">22, 28, 29 พ.ย. (อ./ส.)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr class="border-b border-sky-50">
+                            <td class="p-3 font-bold text-sky-900 bg-sky-50/50 text-center">10.00 - 12.00 น.</td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ประถม / ม.ต้น</span></td>
+                            <td class="p-3 text-center"><span class="bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-bold">งดเรียน (ประถม / ม.ต้น)</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ประถม / ม.ต้น</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ประถม / ม.ต้น</span></td>
+                        </tr>
+                        <tr class="border-b border-sky-50">
+                            <td class="p-3 font-bold text-sky-900 bg-sky-50/50 text-center">13.00 - 15.00 น.</td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.5 - ม.6</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.5 - ม.6</span></td>
+                            <td class="p-3 text-center"><span class="bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-bold">งดเรียน</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.5 - ม.6</span></td>
+                        </tr>
+                        <tr class="border-b border-sky-50">
+                            <td class="p-3 font-bold text-sky-900 bg-sky-50/50 text-center">15.00 - 17.00 น.</td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 1</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 1</span></td>
+                            <td class="p-3 text-center"><span class="bg-pink-100 text-pink-600 px-3 py-1.5 rounded-xl font-bold">งดเรียน</span></td>
+                            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-900 px-3 py-1.5 rounded-xl font-medium">ม.4 กลุ่ม 1</span></td>
+                        </tr>
+                        <tr>
+                            <td class
