@@ -63,29 +63,4 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
             <!-- Left Panel: Students List -->
-            <div class="lg:col-span-1 kawaii-card bg-white p-5 flex flex-col h-fit">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-md font-bold text-pink-600 flex items-center gap-1.5">
-                        👥 รายชื่อนักเรียน
-                    </h2>
-                    <button onclick="openAddStudentModal()" class="bg-pink-100 hover:bg-pink-200 text-pink-600 p-1.5 rounded-lg transition teacher-only text-xs font-semibold flex items-center gap-1">
-                        + เพิ่ม
-                    </button>
-                </div>
-
-                <!-- Filter by Level -->
-                <div class="mb-3">
-                    <select id="filterLevel" onchange="renderStudents()" class="w-full p-2 text-xs border border-pink-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-pink-400">
-                        <option value="all">ทุกระดับชั้น</option>
-                    </select>
-                </div>
-
-                <div id="studentListContainer" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-                    <!-- Rendered by JS -->
-                </div>
-            </div>
-
-            <!-- Right Panel: Schedule Table -->
-            <div class="lg:col-span-3 kawaii-card bg-white p-5">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <h2 class="text-md font-bold text-pink-600">
+            <div class="lg:col-span-1 kawaii-card bg-white p-5
