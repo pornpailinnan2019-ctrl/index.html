@@ -1,1061 +1,1561 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เรียนพิเศษคณิตศาสตร์ ครูแนน</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Google Fonts: Kanit & Sarabun -->
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Kanit', 'Sarabun', sans-serif; }
-        .theme-pink { --primary: #ec4899; --primary-light: #fce7f3; --accent: #db2777; --bg-gradient: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); }
-        .theme-blue { --primary: #3b82f6; --primary-light: #eff6ff; --accent: #2563eb; --bg-gradient: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
-        .theme-mint { --primary: #10b981; --primary-light: #ecfdf5; --accent: #059669; --bg-gradient: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); }
-        .theme-purple { --primary: #8b5cf6; --primary-light: #f5f3ff; --accent: #7c3aed; --bg-gradient: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); }
-        .theme-yellow { --primary: #f59e0b; --primary-light: #fffbeb; --accent: #d97706; --bg-gradient: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); }
-        .pastel-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-    </style>
-</head>
-<body id="appBody" class="theme-pink min-h-screen text-gray-800 pb-16" style="background: var(--bg-gradient);">
+import React, { useState } from 'react';
+import { 
+  Calendar, Clock, Calculator, BookOpen, Users, CreditCard, 
+  Edit3, CheckCircle, XCircle, Plus, Trash2, Shield, User, 
+  Sparkles, Heart, Bell, AlertCircle, Check, Lock, Unlock, Key, UserCheck
+} from 'lucide-react';
 
-    <!-- Header Banner -->
-    <header class="w-full bg-white/90 backdrop-blur-md shadow-md border-b-4 border-pink-200 py-4 px-4 sm:px-8 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3.5 text-center sm:text-left">
-                <div class="w-12 h-12 bg-gradient-to-tr from-pink-500 to-purple-500 text-white rounded-2xl flex items-center justify-center text-2xl shadow-md">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
-                    <p class="text-xs sm:text-sm text-gray-500 font-medium">โทร: <span class="font-bold text-pink-500">096-256-1542</span> | ระบบตารางเรียนและเช็คชื่ออัจฉริยะ</p>
-                </div>
-            </div>
+export default function App() {
+  // Role switcher: 'student' or 'teacher'
+  const [role, setRole] = useState('student');
+  
+  // PIN verification modal state
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
 
-            <!-- Controls: Theme Picker & Admin Mode Toggle -->
-            <div class="flex flex-wrap items-center justify-center gap-3">
-                <div class="flex items-center gap-1.5 bg-gray-100/80 p-1.5 rounded-2xl shadow-inner">
-                    <button onclick="setTheme('pink')" title="สีชมพู" class="w-6 h-6 rounded-full bg-pink-400 hover:scale-110 transition shadow-xs cursor-pointer"></button>
-                    <button onclick="setTheme('blue')" title="สีฟ้า" class="w-6 h-6 rounded-full bg-blue-400 hover:scale-110 transition shadow-xs cursor-pointer"></button>
-                    <button onclick="setTheme('mint')" title="สีเขียวมินต์" class="w-6 h-6 rounded-full bg-emerald-400 hover:scale-110 transition shadow-xs cursor-pointer"></button>
-                    <button onclick="setTheme('purple')" title="สีม่วง" class="w-6 h-6 rounded-full bg-purple-400 hover:scale-110 transition shadow-xs cursor-pointer"></button>
-                    <button onclick="setTheme('yellow')" title="สีเหลือง" class="w-6 h-6 rounded-full bg-amber-400 hover:scale-110 transition shadow-xs cursor-pointer"></button>
-                </div>
+  // Active tab in navigation: 'schedule', 'roster', 'payments', 'notes'
+  const [activeTab, setActiveTab] = useState('schedule');
 
-                <div id="authContainer" class="relative z-50">
-                    <button id="authBtn" type="button" onclick="toggleAuthMode()" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow transition flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 cursor-pointer pointer-events-auto">
-                        <i class="fa-solid fa-lock text-gray-400"></i> โหมดนักเรียน (คลิกเพื่อเข้าโหมดครู)
-                    </button>
-                </div>
-            </div>
+  // Month & Year state (Teacher can edit this)
+  const [scheduleMonthYear, setScheduleMonthYear] = useState('พฤศจิกายน 2569');
+  const [showEditMonthModal, setShowEditMonthModal] = useState(false);
+  const [newMonthYearInput, setNewMonthYearInput] = useState('');
+
+  // Dynamic Date Columns (Teacher can add/edit dates)
+  const [dateColumns, setDateColumns] = useState([
+    { id: 'col14', title: '14 พ.ย. 69', sub: '(ส.)' },
+    { id: 'col15', title: '15 พ.ย. 69', sub: '(อ.)' },
+    { id: 'col21', title: '21 พ.ย. 69', sub: '(ส.)' },
+    { id: 'col22_28_29', title: '22, 28, 29 พ.ย. 69', sub: '(อา. / ส.)' }
+  ]);
+
+  // Initial Schedule Time Slots and Data mapped by colId
+  const [timeSlots, setTimeSlots] = useState([
+    {
+      time: '10.00 – 12.00 น.',
+      data: {
+        col14: { text: 'ประถม / ม.ต้น', type: 'normal' },
+        col15: { text: 'งดเรียน\n(ประถม / ม.ต้น)', type: 'cancelled' },
+        col21: { text: 'ประถม / ม.ต้น', type: 'normal' },
+        col22_28_29: { text: 'ประถม / ม.ต้น', type: 'normal' }
+      }
+    },
+    {
+      time: '13.00 – 15.00 น.',
+      data: {
+        col14: { text: 'ม.5 – ม.6', type: 'normal' },
+        col15: { text: 'ม.5 – ม.6', type: 'normal' },
+        col21: { text: 'งดเรียน', type: 'cancelled' },
+        col22_28_29: { text: 'ม.5 – ม.6', type: 'normal' }
+      }
+    },
+    {
+      time: '15.00 – 17.00 น.',
+      data: {
+        col14: { text: 'ม.4 กลุ่ม 1', type: 'normal' },
+        col15: { text: 'ม.4 กลุ่ม 1', type: 'normal' },
+        col21: { text: 'งดเรียน', type: 'cancelled' },
+        col22_28_29: { text: 'ม.4 กลุ่ม 1', type: 'normal' }
+      }
+    },
+    {
+      time: '17.00 – 19.00 น.',
+      data: {
+        col14: { text: 'ม.4 กลุ่ม 2', type: 'normal' },
+        col15: { text: 'ม.4 กลุ่ม 2', type: 'normal' },
+        col21: { text: 'งดเรียน', type: 'cancelled' },
+        col22_28_29: { text: 'ม.4 กลุ่ม 2', type: 'normal' }
+      }
+    }
+  ]);
+
+  // Initial Notes Data (Teacher can edit/add/delete)
+  const [notes, setNotes] = useState([
+    'วันที่ 15 พฤศจิกายน 2569 งดเรียนเฉพาะระดับประถมศึกษา และ ม.ต้น',
+    'วันที่ 21 พฤศจิกายน 2569 งดเรียน ตั้งแต่เวลา 13.00 – 19.00 น.',
+    'วันที่ 22, 28 และ 29 พฤศจิกายน 2569 เรียนตามตารางปกติ'
+  ]);
+  const [editingNoteIndex, setEditingNoteIndex] = useState(null);
+  const [noteEditText, setNoteEditText] = useState('');
+  const [newNoteText, setNewNoteText] = useState('');
+
+  // Student Rosters by Class (with attendance count and tuition fee amount)
+  const [rosters, setRosters] = useState({
+    'ประถม / ม.ต้น': [
+      { id: 1, name: 'ด.ช. ภูมิใจ เรียนดี', nickname: 'ภูมิ', status: 'paid', attendedCount: 3, fee: 1500 },
+      { id: 2, name: 'ด.ญ. กัญญาณี สุขใจ', nickname: 'แก้ม', status: 'unpaid', attendedCount: 2, fee: 1500 },
+      { id: 3, name: 'ด.ช. ธนดล เก่งกล้า', nickname: 'ดล', status: 'paid', attendedCount: 4, fee: 1500 },
+    ],
+    'ม.5 – ม.6': [
+      { id: 4, name: 'นาย ปกรณ์ มุ่งมั่น', nickname: 'กรณ์', status: 'paid', attendedCount: 3, fee: 2000 },
+      { id: 5, name: 'นางสาว ศิริพร ฉลาด', nickname: 'ฟ้า', status: 'unpaid', attendedCount: 2, fee: 2000 },
+    ],
+    'ม.4 กลุ่ม 1': [
+      { id: 6, name: 'นาย ณเดชน์ รักเรียน', nickname: 'แบร์', status: 'paid', attendedCount: 4, fee: 1800 },
+      { id: 7, name: 'นางสาว อุรัสยา คิดเลข', nickname: 'ญาญ่า', status: 'paid', attendedCount: 4, fee: 1800 },
+    ],
+    'ม.4 กลุ่ม 2': [
+      { id: 8, name: 'นาย จิรายุ ตั้งใจ', nickname: 'เจมส์', status: 'unpaid', attendedCount: 1, fee: 1800 },
+      { id: 9, name: 'นางสาว ราณี เลขสวย', nickname: 'เบล', status: 'paid', attendedCount: 3, fee: 1800 },
+    ]
+  });
+
+  // State for Editing Fee Amount Modal (Teacher)
+  const [editingFeeStudent, setEditingFeeStudent] = useState(null); 
+  const [feeInputVal, setFeeInputVal] = useState('');
+
+  // State for Editing Schedule Cell Modal
+  const [editingCell, setEditingCell] = useState(null); 
+  const [editFormValue, setEditFormValue] = useState({ text: '', type: 'normal' });
+
+  // State for Adding New Date Column Modal
+  const [showAddDateModal, setShowAddDateModal] = useState(false);
+  const [newDateTitle, setNewDateTitle] = useState('');
+  const [newDateSub, setNewDateSub] = useState('');
+
+  // State for Adding Time Slot Modal
+  const [showAddTimeModal, setShowAddTimeModal] = useState(false);
+  const [newTimeSlotText, setNewTimeSlotText] = useState('');
+  
+  // State for Editing Existing Time Slot
+  const [editingTimeIndex, setEditingTimeIndex] = useState(null);
+  const [editingTimeText, setEditingTimeText] = useState('');
+
+  // State for Adding New Student Modal
+  const [addingClassKey, setAddingClassKey] = useState(null);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentNick, setNewStudentNick] = useState('');
+
+  // State for Adding New Class in Roster
+  const [showAddClassModal, setShowAddClassModal] = useState(false);
+  const [newClassName, setNewClassName] = useState('');
+
+  // State for Quick Attendance Modal when clicking class badge
+  const [activeAttendanceClass, setActiveAttendanceClass] = useState(null);
+
+  // Notifications feedback toast
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  // Handle PIN verification for Teacher mode
+  const handleVerifyPin = (e) => {
+    e.preventDefault();
+    if (pinInput === '123456') {
+      setRole('teacher');
+      setShowPinModal(false);
+      setPinInput('');
+      setPinError(false);
+      showToast('เข้าสู่โหมดครูสำเร็จ (รหัสถูกต้อง)');
+    } else {
+      setPinError(true);
+      showToast('รหัส PIN ไม่ถูกต้อง (ลองใช้ 123456)');
+    }
+  };
+
+  // Handler to save schedule cell edit
+  const handleSaveCell = () => {
+    if (!editingCell) return;
+    const { timeIndex, colId } = editingCell;
+    const updated = [...timeSlots];
+    updated[timeIndex].data[colId] = { text: editFormValue.text, type: editFormValue.type };
+    setTimeSlots(updated);
+    setEditingCell(null);
+    showToast('อัปเดตตารางเรียนสำเร็จแล้ว');
+  };
+
+  // Handler to add new date column
+  const handleAddDateColumn = (e) => {
+    e.preventDefault();
+    if (!newDateTitle) return;
+    const newColId = 'col_' + Date.now();
+    const updatedCols = [...dateColumns, { id: newColId, title: newDateTitle, sub: newDateSub || '(วันพิเศษ)' }];
+    setDateColumns(updatedCols);
+
+    const updatedTimeSlots = timeSlots.map(slot => ({
+      ...slot,
+      data: { ...slot.data, [newColId]: { text: 'เปิดสอนปกติ', type: 'normal' } }
+    }));
+    setTimeSlots(updatedTimeSlots);
+
+    setNewDateTitle('');
+    setNewDateSub('');
+    setShowAddDateModal(false);
+    showToast('เพิ่มวันเรียนใหม่สำเร็จ');
+  };
+
+  // Handler to delete date column
+  const handleDeleteDateColumn = (colId) => {
+    if (dateColumns.length <= 1) {
+      showToast('ต้องเหลืออย่างน้อย 1 คอลัมน์วันเรียนค่ะ');
+      return;
+    }
+    setDateColumns(dateColumns.filter(c => c.id !== colId));
+    showToast('ลบคอลัมน์วันเรียนเรียบร้อยแล้ว');
+  };
+
+  // Handler to add time slot
+  const handleAddTimeSlot = (e) => {
+    e.preventDefault();
+    if (!newTimeSlotText) return;
+    const emptyData = {};
+    dateColumns.forEach(c => {
+      emptyData[c.id] = { text: 'ว่าง / ยังไม่ระบุ', type: 'normal' };
+    });
+    setTimeSlots([...timeSlots, { time: newTimeSlotText, data: emptyData }]);
+    setNewTimeSlotText('');
+    setShowAddTimeModal(false);
+    showToast('เพิ่มช่วงเวลาเรียนสำเร็จ');
+  };
+
+  // Handler to save edited time slot
+  const handleSaveEditTimeSlot = (e) => {
+    e.preventDefault();
+    if (editingTimeIndex === null || !editingTimeText) return;
+    const updated = [...timeSlots];
+    updated[editingTimeIndex].time = editingTimeText;
+    setTimeSlots(updated);
+    setEditingTimeIndex(null);
+    setEditingTimeText('');
+    showToast('แก้ไขช่วงเวลาเรียนสำเร็จ');
+  };
+
+  // Handler to delete time slot
+  const handleDeleteTimeSlot = (index) => {
+    setTimeSlots(timeSlots.filter((_, idx) => idx !== index));
+    showToast('ลบช่วงเวลาเรียนเรียบร้อยแล้ว');
+  };
+
+  // Toggle student payment status (Teacher only)
+  const togglePaymentStatus = (className, studentId) => {
+    const updatedRosters = { ...rosters };
+    updatedRosters[className] = updatedRosters[className].map(st => {
+      if (st.id === studentId) {
+        return { ...st, status: st.status === 'paid' ? 'unpaid' : 'paid' };
+      }
+      return st;
+    });
+    setRosters(updatedRosters);
+    showToast('อัปเดตสถานะการชำระเงินเรียบร้อยค่ะ');
+  };
+
+  // Increment student attendance count (Teacher check-in)
+  const handleIncrementAttendance = (className, studentId) => {
+    const updatedRosters = { ...rosters };
+    updatedRosters[className] = updatedRosters[className].map(st => {
+      if (st.id === studentId) {
+        return { ...st, attendedCount: (st.attendedCount || 0) + 1 };
+      }
+      return st;
+    });
+    setRosters(updatedRosters);
+    showToast('เช็คชื่อเข้าเรียนสำเร็จ (+1 ครั้ง)');
+  };
+
+  // Decrement student attendance count
+  const handleDecrementAttendance = (className, studentId) => {
+    const updatedRosters = { ...rosters };
+    updatedRosters[className] = updatedRosters[className].map(st => {
+      if (st.id === studentId && (st.attendedCount || 0) > 0) {
+        return { ...st, attendedCount: st.attendedCount - 1 };
+      }
+      return st;
+    });
+    setRosters(updatedRosters);
+    showToast('ลดจำนวนครั้งเข้าเรียน');
+  };
+
+  // Add student
+  const handleAddStudent = (e) => {
+    e.preventDefault();
+    if (!addingClassKey || !newStudentName) return;
+    const newId = Date.now();
+    const updatedRosters = { ...rosters };
+    updatedRosters[addingClassKey].push({
+      id: newId,
+      name: newStudentName,
+      nickname: newStudentNick || '-',
+      status: 'unpaid',
+      attendedCount: 0,
+      fee: 1500
+    });
+    setRosters(updatedRosters);
+    setNewStudentName('');
+    setNewStudentNick('');
+    setAddingClassKey(null);
+    showToast('เพิ่มรายชื่อนักเรียนสำเร็จ');
+  };
+
+  // Handler to save edited student fee amount
+  const handleSaveFee = (e) => {
+    e.preventDefault();
+    if (!editingFeeStudent) return;
+    const { className, studentId } = editingFeeStudent;
+    const numFee = parseFloat(feeInputVal) || 0;
+    
+    const updatedRosters = { ...rosters };
+    updatedRosters[className] = updatedRosters[className].map(st => {
+      if (st.id === studentId) {
+        return { ...st, fee: numFee };
+      }
+      return st;
+    });
+    setRosters(updatedRosters);
+    setEditingFeeStudent(null);
+    setFeeInputVal('');
+    showToast('อัปเดตยอดเงินค่าเรียนสำเร็จ');
+  };
+
+  // Add new class to Roster
+  const handleAddClass = (e) => {
+    e.preventDefault();
+    if (!newClassName.trim()) return;
+    if (rosters[newClassName]) {
+      showToast('ชื่อคลาสนี้มีอยู่แล้วค่ะ');
+      return;
+    }
+    setRosters({
+      ...rosters,
+      [newClassName]: []
+    });
+    setNewClassName('');
+    setShowAddClassModal(false);
+    showToast('เพิ่มคลาสเรียนใหม่สำเร็จ');
+  };
+
+  // Remove class from Roster
+  const handleRemoveClass = (className) => {
+    if (Object.keys(rosters).length <= 1) {
+      showToast('ต้องเหลืออย่างน้อย 1 คลาสค่ะ');
+      return;
+    }
+    const updatedRosters = { ...rosters };
+    delete updatedRosters[className];
+    setRosters(updatedRosters);
+    showToast('ลบคลาสเรียบร้อยแล้ว');
+  };
+
+  // Remove student
+  const handleRemoveStudent = (className, studentId) => {
+    const updatedRosters = { ...rosters };
+    updatedRosters[className] = updatedRosters[className].filter(st => st.id !== studentId);
+    setRosters(updatedRosters);
+    showToast('ลบรายชื่อนักเรียนเรียบร้อยแล้ว');
+  };
+
+  // Notes management handlers
+  const handleAddNote = (e) => {
+    e.preventDefault();
+    if (!newNoteText) return;
+    setNotes([...notes, newNoteText]);
+    setNewNoteText('');
+    showToast('เพิ่มหมายเหตุใหม่สำเร็จ');
+  };
+
+  const handleSaveEditNote = (index) => {
+    if (!noteEditText.trim()) return;
+    const updated = [...notes];
+    updated[index] = noteEditText;
+    setNotes(updated);
+    setEditingNoteIndex(null);
+    setNoteEditText('');
+    showToast('แก้ไขหมายเหตุสำเร็จ');
+  };
+
+  const handleDeleteNote = (index) => {
+    setNotes(notes.filter((_, idx) => idx !== index));
+    showToast('ลบหมายเหตุเรียบร้อยแล้ว');
+  };
+
+  // Handler to save edited month/year
+  const handleSaveMonthYear = (e) => {
+    e.preventDefault();
+    if (!newMonthYearInput.trim()) return;
+    setScheduleMonthYear(newMonthYearInput.trim());
+    setShowEditMonthModal(false);
+    setNewMonthYearInput('');
+    showToast('อัปเดตเดือน/ปีเรียบร้อยแล้ว');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 via-pink-50 to-sky-200 text-slate-700 font-sans pb-16 selection:bg-pink-300 selection:text-pink-900">
+      
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-white/95 border-2 border-pink-400 text-pink-700 px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce">
+          <Sparkles className="w-5 h-5 text-pink-500 animate-spin" />
+          <span className="font-bold text-sm">{toastMessage}</span>
         </div>
-    </header>
+      )}
 
-    <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-4 mt-6">
-
-        <!-- Navigation Tabs -->
-        <div class="flex flex-wrap gap-2 border-b border-pink-200/60 pb-3 mb-6">
-            <button onclick="switchTab('schedule')" id="tabBtn-schedule" class="px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-pink-500 text-white flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days"></i> ตารางสอนรายเดือน
-            </button>
-            <button onclick="switchTab('students')" id="tabBtn-students" class="px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-                <i class="fa-solid fa-users"></i> รายชื่อนักเรียนทั้งหมด
-            </button>
-            <button onclick="switchTab('payment')" id="tabBtn-payment" class="px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-                <i class="fa-solid fa-file-invoice-dollar"></i> ชำระเงินรายเดือน
-            </button>
-            <button onclick="switchTab('levels')" id="tabBtn-levels" class="teacher-only hidden px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-purple-500 text-white flex items-center gap-2">
-                <i class="fa-solid fa-gear"></i> จัดการระดับชั้น (ครู)
-            </button>
-        </div>
-
-        <!-- TAB 1: SCHEDULE & ATTENDANCE -->
-        <div id="tabContent-schedule" class="space-y-6">
-            <!-- Month & Header Controls -->
-            <div class="pastel-card rounded-3xl p-5 sm:p-6 shadow-xl border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">
-                        <i class="fa-regular fa-calendar"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg sm:text-xl font-bold text-gray-800" id="currentMonthTitle">ตารางเรียนเดือน พฤศจิกายน 2569</h2>
-                        <p class="text-xs text-gray-500">คลิกที่ช่องคาเรียนเพื่อเลือกและกำหนดระดับชั้นที่เปิดสอน (โหมดครู)</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <input type="month" id="calendarPicker" onchange="changeMonth(this.value)" class="px-4 py-2.5 border border-pink-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white shadow-xs font-medium">
-                </div>
-            </div>
-
-            <!-- Schedule Table Card -->
-            <div class="pastel-card rounded-3xl shadow-xl border border-pink-100 overflow-hidden">
-                <div class="p-4 sm:p-5 bg-pink-50/70 border-b border-pink-100 flex justify-between items-center">
-                    <h3 class="font-bold text-pink-700 flex items-center gap-2 text-sm sm:text-base">
-                        <i class="fa-solid fa-table-cells"></i> ตารางสอนประจำคาบ
-                    </h3>
-                    <div id="adminScheduleControls" class="teacher-only hidden flex gap-2">
-                        <button onclick="openAddSlotModal()" class="px-3.5 py-2 bg-white text-pink-600 border border-pink-300 text-xs font-bold rounded-xl hover:bg-pink-50 transition shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock"></i> เพิ่มช่วงเวลา
-                        </button>
-                        <button onclick="openAddDateModal()" class="px-3.5 py-2 bg-pink-500 text-white text-xs font-bold rounded-xl hover:bg-pink-600 transition shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-plus"></i> เพิ่มวันสอน
-                        </button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto p-2 sm:p-4">
-                    <table class="w-full border-collapse" id="mainScheduleTable">
-                        <thead>
-                            <tr id="scheduleHeaderRow" class="bg-gradient-to-r from-pink-400 to-purple-400 text-white text-center rounded-2xl">
-                                <th class="p-3.5 rounded-l-2xl text-xs sm:text-sm font-bold w-40">เวลา / วันที่</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scheduleBody" class="divide-y divide-pink-100 text-center text-xs sm:text-sm font-medium">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- NOTES / ANNOUNCEMENTS SECTION WITH AI NOTICE GENERATOR -->
-            <div class="pastel-card rounded-3xl p-5 sm:p-6 bg-amber-50/80 border-2 border-amber-200 relative overflow-hidden shadow-xl">
-                <div class="absolute -right-5 -bottom-5 text-7xl text-amber-300/40 pointer-events-none">
-                    <i class="fa-solid fa-bullhorn"></i>
-                </div>
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-amber-400 text-white rounded-2xl flex items-center justify-center shadow flex-shrink-0">
-                            <i class="fa-solid fa-bullhorn text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-amber-900">หมายเหตุ / ประกาศสำคัญประจำเดือน</h3>
-                            <p class="text-xs text-amber-700">แจ้งเตือนวันหยุดและรายละเอียดการเรียนพิเศษ</p>
-                        </div>
-                    </div>
-                    <div class="teacher-only hidden">
-                        <button onclick="generateAiNotice()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-pink-500 text-white rounded-xl text-xs font-bold shadow hover:opacity-90 flex items-center gap-1.5 active:scale-95">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI ช่วยออกแบบประกาศหยุดเรียน
-                        </button>
-                    </div>
-                </div>
-                <div class="space-y-2 text-xs sm:text-sm text-amber-900" id="noticeContentContainer">
-                    <!-- Dynamic Notices -->
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: MASTER STUDENT LIST -->
-        <div id="tabContent-students" class="hidden space-y-6">
-            <div class="pastel-card rounded-3xl p-5 sm:p-6 shadow-xl border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">
-                        <i class="fa-solid fa-users-rectangle"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg sm:text-xl font-bold text-gray-800">รายชื่อนักเรียนทั้งหมด & เช็คชื่อ</h2>
-                        <p class="text-xs text-gray-500">จัดการข้อมูลนักเรียน และบันทึกจำนวนครั้งที่มาเรียน (เฉพาะโหมดครู)</p>
-                    </div>
-                </div>
-                <div class="teacher-only hidden">
-                    <button onclick="openStudentModal()" class="px-4 py-2.5 bg-pink-500 text-white rounded-2xl text-xs sm:text-sm font-bold hover:bg-pink-600 transition shadow-md flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i> เพิ่มนักเรียนใหม่
-                    </button>
-                </div>
-            </div>
-
-            <div class="pastel-card rounded-3xl shadow-xl border border-pink-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-pink-100/70 text-pink-900 text-xs sm:text-sm border-b border-pink-200">
-                                <th class="p-4 font-bold">ชื่อ - นามสกุล</th>
-                                <th class="p-4 font-bold">ระดับชั้น</th>
-                                <th class="p-4 font-bold">เวลาเรียน / คอร์ส</th>
-                                <th class="p-4 font-bold text-center">มาเรียน (ครั้ง)</th>
-                                <th class="p-4 font-bold text-center teacher-only hidden">จัดการ / เช็คชื่อ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTableBody" class="text-xs sm:text-sm divide-y divide-gray-100">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: MONTHLY PAYMENT TRACKING -->
-        <div id="tabContent-payment" class="hidden space-y-6">
-            <div class="pastel-card rounded-3xl p-5 sm:p-6 shadow-xl border border-pink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">
-                        <i class="fa-solid fa-wallet"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg sm:text-xl font-bold text-gray-800">ตารางการชำระเงินรายเดือน</h2>
-                        <p class="text-xs text-gray-500">ติดตามสถานะการชำระคอร์สเรียนประจำเดือน</p>
-                    </div>
-                </div>
-                <div id="paymentSummaryBox" class="text-xs sm:text-sm bg-pink-50 px-4 py-2.5 rounded-2xl border border-pink-200 font-bold text-pink-700 shadow-xs flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-500"></i> ยอดชำระแล้ว: <span id="paidTotalCount">0</span> คน
-                </div>
-            </div>
-
-            <div class="pastel-card rounded-3xl shadow-xl border border-pink-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-pink-100/70 text-pink-900 text-xs sm:text-sm border-b border-pink-200">
-                                <th class="p-4 font-bold">ชื่อนักเรียน</th>
-                                <th class="p-4 font-bold">ระดับชั้น</th>
-                                <th class="p-4 font-bold">เวลาเรียน</th>
-                                <th class="p-4 font-bold teacher-only hidden">จำนวนเงิน (บาท)</th>
-                                <th class="p-4 font-bold text-center">สถานะการชำระเงิน</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentTableBody" class="text-xs sm:text-sm divide-y divide-gray-100">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: LEVEL MANAGEMENT (TEACHER ONLY) -->
-        <div id="tabContent-levels" class="hidden space-y-6">
-            <div class="pastel-card rounded-3xl p-5 sm:p-6 shadow-xl border border-purple-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl font-bold shadow-inner">
-                        <i class="fa-solid fa-layer-group"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg sm:text-xl font-bold text-gray-800">จัดการระดับชั้น (เฉพาะโหมดครู)</h2>
-                        <p class="text-xs text-gray-500">เพิ่มหรือแก้ไขระดับชั้นสำหรับนักเรียนในระบบ</p>
-                    </div>
-                </div>
-                <div>
-                    <button onclick="openLevelModal()" class="px-4 py-2.5 bg-purple-500 text-white rounded-2xl text-xs sm:text-sm font-bold hover:bg-purple-600 transition shadow-md flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> เพิ่มระดับชั้นใหม่
-                    </button>
-                </div>
-            </div>
-
-            <div class="pastel-card rounded-3xl shadow-xl border border-purple-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-purple-100/70 text-purple-900 text-xs sm:text-sm border-b border-purple-200">
-                                <th class="p-4 font-bold">ระดับชั้น</th>
-                                <th class="p-4 font-bold text-center">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="levelTableBody" class="text-xs sm:text-sm divide-y divide-gray-100">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- MODAL: ATTENDANCE & SLOT ASSIGNMENT -->
-    <div id="attendanceModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="pastel-card rounded-3xl max-w-md w-full p-6 shadow-2xl border border-pink-200 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 id="modalSlotTitle" class="font-bold text-base sm:text-lg text-pink-700">จัดการคาบสอน</h3>
-                <button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
-            </div>
-            <div id="modalSlotContent" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-                <!-- Dynamic checklist -->
-            </div>
-            <div class="flex justify-end gap-2 pt-2 border-t">
-                <button onclick="closeAttendanceModal()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition">ปิดหน้าต่าง</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD / EDIT SCHEDULE DATE COLUMN -->
-    <div id="addDateModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="pastel-card rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-pink-200 space-y-4">
-            <h3 id="dateModalTitle" class="font-bold text-lg text-pink-700 border-b pb-2">จัดการหัวข้อวันที่เรียน</h3>
-            <input type="hidden" id="editDateId">
+      {/* Top Floating Role & Mode Switcher Bar */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b-2 border-pink-200 shadow-sm px-4 py-3">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="bg-pink-500 text-white p-2 rounded-xl shadow-md">
+              <Calculator className="w-6 h-6 animate-pulse" />
+            </span>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">หัวข้อวันที่ / วันในสัปดาห์ (รองรับขึ้นบรรทัดใหม่)</label>
-                <textarea id="newDateTitle" rows="3" class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="เช่น 14 พ.ย. 69&#10;(ส.)"></textarea>
+              <h1 className="text-lg font-extrabold text-pink-600 tracking-wide">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
+              <p className="text-xs text-slate-500">ระบบจัดการตารางเรียนและเช็คชื่อนักเรียน</p>
             </div>
-            <div class="flex justify-end gap-2 pt-2 border-t">
-                <button onclick="closeAddDateModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-300 transition">ยกเลิก</button>
-                <button onclick="confirmSaveDate()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition">บันทึก</button>
-            </div>
-        </div>
-    </div>
+          </div>
 
-    <!-- MODAL: ADD / EDIT TIME SLOT -->
-    <div id="addSlotModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="pastel-card rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-pink-200 space-y-4">
-            <h3 id="slotModalTitle" class="font-bold text-lg text-pink-700 border-b pb-2">จัดการช่วงเวลาเรียน</h3>
-            <input type="hidden" id="editSlotId">
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">ช่วงเวลาเรียน (เช่น 10.00 - 12.00 น.)</label>
-                <input type="text" id="newSlotTime" class="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white" placeholder="เช่น 10.00 - 12.00 น.">
-            </div>
-            <div class="flex justify-end gap-2 pt-2 border-t">
-                <button onclick="closeAddSlotModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-300 transition">ยกเลิก</button>
-                <button onclick="confirmSaveSlot()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD / EDIT STUDENT -->
-            <!-- Schedule Table Card -->
-            <div class="pastel-card rounded-3xl shadow-xl border border-pink-100 overflow-hidden">
-                <div class="p-4 sm:p-5 bg-pink-50/70 border-b border-pink-100 flex justify-between items-center">
-                    <h3 class="font-bold text-pink-700 flex items-center gap-2 text-sm sm:text-base">
-                        <i class="fa-solid fa-table-cells"></i> ตารางสอนประจำคาบ
-                    </h3>
-                    <div id="adminScheduleControls" class="teacher-only hidden flex gap-2">
-                        <button onclick="openAddSlotModal()" class="px-3.5 py-2 bg-white text-pink-600 border border-pink-300 text-xs font-bold rounded-xl hover:bg-pink-50 transition shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-clock"></i> เพิ่มช่วงเวลา
-                        </button>
-                        <button onclick="openAddDateModal()" class="px-3.5 py-2 bg-pink-500 text-white text-xs font-bold rounded-xl hover:bg-pink-600 transition shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-plus"></i> เพิ่มวันสอน
-                        </button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto p-2 sm:p-4">
-                    <table class="w-full border-collapse" id="mainScheduleTable">
-                        <thead>
-                            <tr id="scheduleHeaderRow" class="bg-gradient-to-r from-pink-400 to-purple-400 text-white text-center rounded-2xl">
-                                <th class="p-3.5 rounded-l-2xl text-xs sm:text-sm font-bold w-40">เวลา / วันที่</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scheduleBody" class="divide-y divide-pink-100 text-center text-xs sm:text-sm font-medium">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-3 border-t">
-                <button onclick="closeStudentModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-300 transition">ยกเลิก</button>
-                <button onclick="saveStudentData()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD / EDIT LEVEL -->
-    <div id="levelModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-        <div class="pastel-card rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-purple-200 space-y-4">
-            <h3 class="font-bold text-base sm:text-lg text-purple-700 border-b pb-2">เพิ่มระดับชั้นใหม่</h3>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อระดับชั้น</label>
-                <input type="text" id="inputLevelName" class="w-full px-4 py-2.5 border rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white" placeholder="เช่น ม.3, ปวช.1">
-            </div>
-            <div class="flex justify-end gap-2 pt-3 border-t">
-                <button onclick="closeLevelModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-300 transition">ยกเลิก</button>
-                <button onclick="saveLevelData()" class="px-4 py-2 bg-purple-500 text-white rounded-xl text-xs font-bold shadow hover:bg-purple-600 transition">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT APPLICATION LOGIC -->
-    <script>
-        // --- State Management ---
-        let isAdminMode = false;
-        let currentTheme = localStorage.getItem('kruNaan_theme') || 'pink';
-        let currentMonth = "พฤศจิกายน";
-        let currentYear = "2569";
-
-        let levels = JSON.parse(localStorage.getItem('kruNaan_levels')) || [
-            "ประถม", "ม.ต้น", "ม.4", "ม.5", "ม.6"
-        ];
-
-        let scheduleDates = JSON.parse(localStorage.getItem('kruNaan_dates')) || [
-            { id: "d1", title: "14 พ.ย. 69\n(ส.)" },
-            { id: "d2", title: "15 พ.ย. 69\n(อ.)" },
-            { id: "d3", title: "21 พ.ย. 69\n(ส.)" },
-            { id: "d4", title: "22, 28, 29 พ.ย. 69\n(อ. / ส.)" }
-        ];
-
-        let scheduleSlots = JSON.parse(localStorage.getItem('kruNaan_slots')) || [
-            { id: "s1", time: "10.00 - 12.00 น." },
-            { id: "s2", time: "13.00 - 15.00 น." },
-            { id: "s3", time: "15.00 - 17.00 น." },
-            { id: "s4", time: "17.00 - 19.00 น." }
-        ];
-
-        let slotAssignments = JSON.parse(localStorage.getItem('kruNaan_slotAssignments')) || {
-            "0-0": ["ประถม", "ม.ต้น"],
-            "1-0": ["ม.5", "ม.6"],
-            "2-0": ["ม.4 กลุ่ม 1"],
-            "3-0": ["ม.4 กลุ่ม 2"]
-        };
-
-        let customNotices = JSON.parse(localStorage.getItem('kruNaan_customNotices')) || [
-            "นักเรียนที่ขาดเรียนสามารถนัดหมายขอเรียนชดเชยกับครูแนนล่วงหน้าอย่างน้อย 1 วัน",
-            "ชำระค่าเรียนภายในวันที่ 25 ของทุกเดือนผ่านช่องทางโอนเงินธนาคาร",
-            "กรุณานำสมุดแบบฝึกหัดและเครื่องเขียนมาให้พร้อมทุกครั้ง"
-        ];
-
-        let students = JSON.parse(localStorage.getItem('kruNaan_students')) || [
-            { id: 1, name: "ด.ช. รักเรียน เพียรวิชา", level: "ม.4", timeSlot: "10.00 - 12.00 น.", fee: 1500, paid: true },
-            { id: 2, name: "ด.ญ. สดใส ตั้งใจเรียน", level: "ม.5", timeSlot: "13.00 - 15.00 น.", fee: 1500, paid: false },
-            { id: 3, name: "นาย สมชาย มุ่งมั่น", level: "ม.6", timeSlot: "15.00 - 17.00 น.", fee: 1800, paid: true }
-        ];
-
-        let attendance = JSON.parse(localStorage.getItem('kruNaan_attendance')) || {};
-        let currentActiveTab = 'schedule';
-        let currentModalContext = null;
-
-        window.onload = function() {
-            setTheme(currentTheme);
-            updateTeacherUI();
-            updateDropdowns();
-            renderAll();
-        };
-
-        function saveData() {
-            localStorage.setItem('kruNaan_theme', currentTheme);
-            localStorage.setItem('kruNaan_levels', JSON.stringify(levels));
-            localStorage.setItem('kruNaan_dates', JSON.stringify(scheduleDates));
-            localStorage.setItem('kruNaan_slots', JSON.stringify(scheduleSlots));
-            localStorage.setItem('kruNaan_slotAssignments', JSON.stringify(slotAssignments));
-            localStorage.setItem('kruNaan_customNotices', JSON.stringify(customNotices));
-            localStorage.setItem('kruNaan_students', JSON.stringify(students));
-            localStorage.setItem('kruNaan_attendance', JSON.stringify(attendance));
-        }
-
-        function renderAll() {
-            renderScheduleTable();
-            renderNotices();
-            renderStudentTable();
-            renderPaymentTable();
-            renderLevelList();
-            updateDropdowns();
-        }
-
-        function setTheme(theme) {
-            currentTheme = theme;
-            const body = document.getElementById('appBody');
-            if(body) body.className = `theme-${theme} min-h-screen text-gray-800 pb-16`;
-            saveData();
-        }
-
-        function toggleAuthMode() {
-            if (!isAdminMode) {
-                let pwd = prompt("กรุณาใส่รหัสผ่านสำหรับโหมดครู:");
-                if (pwd === "123456789") {
-                    isAdminMode = true;
-                    alert("เข้าสู่โหมดคุณครูเรียบร้อย!");
-                } else if (pwd !== null) {
-                    alert("รหัสผ่านไม่ถูกต้อง!");
-                    return;
+          {/* Mode Switcher */}
+          <div className="flex items-center bg-pink-100/80 p-1.5 rounded-2xl border border-pink-300">
+            <button
+              onClick={() => { setRole('student'); showToast('สลับเป็นโหมดนักเรียน (ดูอย่างเดียว)'); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
+                role === 'student' 
+                  ? 'bg-white text-pink-600 shadow-md scale-105' 
+                  : 'text-slate-600 hover:text-pink-600'
+              }`}
+            >
+              <User className="w-4 h-4 text-sky-500" />
+              โหมดนักเรียน
+            </button>
+            <button
+              onClick={() => {
+                if (role === 'teacher') {
+                  setRole('student');
+                  showToast('ออกจากโหมดครูแล้ว');
                 } else {
-                    return;
+                  setShowPinModal(true);
                 }
-            } else {
-                isAdminMode = false;
-                alert("ออกจากโหมดคุณครูแล้ว (กลับสู่โหมดนักเรียน)");
-                if (currentActiveTab === 'levels') switchTab('schedule');
-            }
-            updateTeacherUI();
-            renderAll();
-        }
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ${
+                role === 'teacher' 
+                  ? 'bg-pink-600 text-white shadow-md scale-105' 
+                  : 'text-slate-600 hover:text-pink-600'
+              }`}
+            >
+              {role === 'teacher' ? <Unlock className="w-4 h-4 text-yellow-300" /> : <Lock className="w-4 h-4 text-pink-500" />}
+              {role === 'teacher' ? 'โหมดครูแนน (เปิดอยู่)' : 'โหมดครู (ใส่รหัส PIN)'}
+            </button>
+          </div>
+        </div>
+      </header>
 
-        function updateTeacherUI() {
-            const btn = document.getElementById('authBtn');
-            const teacherElements = document.querySelectorAll('.teacher-only');
-            
-            if (isAdminMode) {
-                if(btn) {
-                    btn.className = "px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow transition flex items-center gap-2 bg-pink-500 text-white hover:bg-pink-600 cursor-pointer pointer-events-auto";
-                    btn.innerHTML = `<i class="fa-solid fa-unlock-keyhole"></i> โหมดคุณครู (คลิกเพื่อออก)`;
-                }
-                teacherElements.forEach(el => el.classList.remove('hidden'));
-            } else {
-                if(btn) {
-                    btn.className = "px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow transition flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 cursor-pointer pointer-events-auto";
-                    btn.innerHTML = `<i class="fa-solid fa-lock text-gray-400"></i> โหมดนักเรียน (คลิกเพื่อเข้าโหมดครู)`;
-                }
-                teacherElements.forEach(el => el.classList.add('hidden'));
-                if (currentActiveTab === 'levels') {
-                    switchTab('schedule');
-                }
-            }
-        }
+      {/* Hero Header Banner */}
+      <div className="max-w-5xl mx-auto px-4 pt-8 pb-6 text-center relative">
+        <div className="absolute top-2 left-4 md:left-12 hidden md:block animate-bounce duration-1000">
+          <div className="bg-yellow-200 border-2 border-yellow-400 p-3 rounded-2xl shadow-lg transform -rotate-6">
+            <Sparkles className="w-8 h-8 text-amber-500" />
+          </div>
+        </div>
+        <div className="absolute top-4 right-4 md:right-12 hidden md:block">
+          <div className="bg-sky-200 border-2 border-sky-400 p-3 rounded-2xl shadow-lg transform rotate-6">
+            <Calculator className="w-8 h-8 text-sky-600" />
+          </div>
+        </div>
 
-        function switchTab(tabId) {
-            if (tabId === 'levels' && !isAdminMode) {
-                alert("เฉพาะคุณครูเท่านั้นที่สามารถเข้าถึงเมนูจัดการระดับชั้นได้");
-                return;
-            }
-            currentActiveTab = tabId;
-            ['schedule', 'students', 'payment', 'levels'].forEach(t => {
-                const el = document.getElementById(`tabContent-${t}`);
-                const btn = document.getElementById(`tabBtn-${t}`);
-                if(el) el.classList.add('hidden');
-                if(btn) {
-                    btn.className = "px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-2";
-                }
-            });
-            const activeEl = document.getElementById(`tabContent-${tabId}`);
-            const activeBtn = document.getElementById(`tabBtn-${tabId}`);
-            if(activeEl) activeEl.classList.remove('hidden');
-            if(activeBtn) {
-                activeBtn.className = tabId === 'levels' 
-                    ? "px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-purple-500 text-white flex items-center gap-2"
-                    : "px-5 py-2.5 rounded-2xl font-bold text-sm sm:text-base transition shadow-sm bg-pink-500 text-white flex items-center gap-2";
-            }
-        }
+        <div className="inline-flex items-center gap-2 bg-pink-100 border-2 border-pink-300 px-6 py-2 rounded-full shadow-inner mb-3 relative group/badge">
+          <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+          <span className="text-xs sm:text-sm font-bold text-pink-600 tracking-wider">
+            ตารางเรียนพิเศษ ประจำเดือน {scheduleMonthYear}
+          </span>
+          <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+          {role === 'teacher' && (
+            <button
+              onClick={() => { setNewMonthYearInput(scheduleMonthYear); setShowEditMonthModal(true); }}
+              className="absolute -right-8 top-1/2 -translate-y-1/2 bg-pink-600 text-white p-1 rounded-full shadow hover:bg-pink-700 transition"
+              title="เปลี่ยนเดือน/ปี"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
-        // --- Schedule & AI Notice Logic ---
-        function renderScheduleTable() {
-            const headerRow = document.getElementById('scheduleHeaderRow');
-            const body = document.getElementById('scheduleBody');
-            if(!headerRow || !body) return;
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-pink-600 drop-shadow-sm mb-3">
+          เรียนพิเศษคณิตศาสตร์ ครูแนน
+        </h2>
+        <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl mx-auto bg-white/60 py-1 px-4 rounded-full border border-pink-200 shadow-sm">
+          {role === 'teacher' ? 'โหมดคุณครู: สามารถแก้ไขตาราง วันที่ เวลา เช็คชื่อ และหมายเหตุได้ทั้งหมด' : 'โหมดนักเรียน: ดูตารางเรียน เช็คชื่อ และตรวจสอบค่าเรียนพิเศษ'}
+        </p>
 
-            let headerHTML = `<th class="p-3.5 rounded-l-2xl text-xs sm:text-sm font-bold w-40 text-pink-900 bg-pink-100/80">เวลา / วันที่</th>`;
-            scheduleDates.forEach((d, dIdx) => {
-                let escapedTitle = d.title.replace(/\n/g, '<br>');
-                headerHTML += `
-                    <th class="p-3.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 border-l border-white/20 relative min-w-[130px]">
-                        <div class="flex flex-col items-center justify-center gap-1">
-                            <span>${escapedTitle}</span>
-                            <div class="teacher-only ${isAdminMode ? '' : 'hidden'} flex gap-1 mt-1">
-                                <button onclick="openEditDateModal('${d.id}')" class="w-6 h-6 bg-white/30 hover:bg-white/50 rounded-lg text-white text-[10px] flex items-center justify-center transition" title="แก้ไขหัวข้อ"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteDateColumn('${d.id}')" class="w-6 h-6 bg-red-400/60 hover:bg-red-500 rounded-lg text-white text-[10px] flex items-center justify-center transition" title="ลบคอลัมน์นี้"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </th>
-                `;
-            });
-            headerRow.innerHTML = headerHTML;
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mt-6">
+          <button
+            onClick={() => setActiveTab('schedule')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${
+              activeTab === 'schedule' 
+                ? 'bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-pink-300/50 scale-105' 
+                : 'bg-white text-slate-600 hover:bg-pink-50 border border-pink-200'
+            }`}
+          >
+            <Calendar className="w-4 h-4" /> ตารางเรียนหลัก
+          </button>
+          <button
+            onClick={() => setActiveTab('roster')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${
+              activeTab === 'roster' 
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-400 text-white shadow-sky-300/50 scale-105' 
+                : 'bg-white text-slate-600 hover:bg-sky-50 border border-sky-200'
+            }`}
+          >
+            <Users className="w-4 h-4" /> รายชื่อ & เช็คชื่อ
+          </button>
+          <button
+            onClick={() => setActiveTab('payments')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all ${
+              activeTab === 'payments' 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-white shadow-emerald-300/50 scale-105' 
+                : 'bg-white text-slate-600 hover:bg-emerald-50 border border-emerald-200'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" /> ชำระค่าเรียนพิเศษ
+          </button>
+        </div>
+      </div>
 
-            let bodyHTML = "";
-            scheduleSlots.forEach((slot, sIdx) => {
-                bodyHTML += `<tr class="hover:bg-pink-50/40 transition">`;
-                bodyHTML += `
-                    <td class="p-3 font-bold text-pink-800 bg-pink-50/60 border-r border-pink-100 text-xs sm:text-sm">
-                        <div class="flex flex-col items-center justify-center gap-1">
-                            <span>${slot.time || slot}</span>
-                            <div class="teacher-only ${isAdminMode ? '' : 'hidden'} flex gap-1 mt-1">
-                                <button onclick="openEditSlotModal('${slot.id || sIdx}')" class="w-6 h-6 bg-pink-100 hover:bg-pink-200 rounded-lg text-pink-700 text-[10px] flex items-center justify-center transition" title="แก้ไขเวลา"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteSlot('${slot.id || sIdx}')" class="w-6 h-6 bg-red-100 hover:bg-red-200 rounded-lg text-red-600 text-[10px] flex items-center justify-center transition" title="ลบช่วงเวลานี้"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </td>
-                `;
+      {/* Main Content Area */}
+      <main className="max-w-6xl mx-auto px-4">
 
-                scheduleDates.forEach((d, dIdx) => {
-                    let key = `${sIdx}-${dIdx}`;
-                    let assignedLevels = slotAssignments[key] || [];
-                    let displayText = assignedLevels.length > 0 ? assignedLevels.join(', ') : `<span class="text-gray-300 italic text-xs">ว่าง / ไม่มีสอน</span>`;
-                    
-                    bodyHTML += `
-                        <td onclick="handleCellClick(${sIdx}, ${dIdx})" class="p-3 border-l border-pink-100 cursor-pointer hover:bg-pink-100/50 transition align-middle text-xs sm:text-sm font-medium">
-                            <div class="p-2 rounded-xl bg-white/80 shadow-xs border border-pink-100 min-h-[48px] flex items-center justify-center text-center">
-                                ${displayText}
-                            </div>
-                        </td>
-                    `;
-                });
-                bodyHTML += `</tr>`;
-            });
-            body.innerHTML = bodyHTML;
-            updateTeacherUI();
-        }
-
-        function handleCellClick(sIdx, dIdx) {
-            if (!isAdminMode) {
-                alert("โหมดนักเรียน: ไม่สามารถแก้ไขตารางสอนหรือระดับชั้นในคาบเรียนได้ (กรุณาเข้าสู่โหมดครูเพื่อแก้ไข)");
-                return;
-            }
-            currentModalContext = { sIdx, dIdx };
-            let key = `${sIdx}-${dIdx}`;
-            let currentAssigned = slotAssignments[key] || [];
-            let isCancelled = currentAssigned.includes("❌ งดเรียน");
-
-            document.getElementById('modalSlotTitle').innerText = `เลือกคาบสอน: ${scheduleSlots[sIdx].time} (${scheduleDates[dIdx].title.replace(/\n/g, ' ')})`;
-            
-            let contentHTML = `
-                <div class="mb-3">
-                    <label class="flex items-center gap-3 p-3 bg-red-50 hover:bg-red-100 rounded-xl cursor-pointer transition border border-red-200">
-                        <input type="checkbox" id="cancelClassCheckbox" value="❌ งดเรียน" ${isCancelled ? 'checked' : ''} class="w-4 h-4 text-red-600 rounded focus:ring-red-400">
-                        <span class="text-xs sm:text-sm font-bold text-red-700"><i class="fa-solid fa-ban"></i> ❌ งดเรียน (ยกเลิกคาบนี้)</span>
-                    </label>
+        {/* TAB 1: SCHEDULE */}
+        {activeTab === 'schedule' && (
+          <div className="space-y-6">
+            <div className="bg-white/90 backdrop-blur border-4 border-pink-300 rounded-3xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-r from-pink-400 to-rose-400 p-4 text-white font-bold text-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 animate-spin" />
+                  <span>ตารางเวลาเรียน ประจำเดือน {scheduleMonthYear}</span>
                 </div>
-                <hr class="my-2 border-pink-100">
-                <p class="text-xs text-gray-500 mb-2 font-medium">เลือกรายวิชาหรือระดับชั้นที่เปิดสอนในคาบนี้ (เลือกได้มากกว่า 1 ชั้น):</p>
-                <div class="space-y-2">
-            `;
+                {role === 'teacher' && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => { setNewMonthYearInput(scheduleMonthYear); setShowEditMonthModal(true); }}
+                      className="bg-white text-pink-600 hover:bg-pink-50 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow flex items-center gap-1 transition"
+                    >
+                      <Calendar className="w-3.5 h-3.5" /> เปลี่ยนเดือน
+                    </button>
+                    <button
+                      onClick={() => setShowAddDateModal(true)}
+                      className="bg-white text-pink-600 hover:bg-pink-50 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow flex items-center gap-1 transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> เพิ่มช่องวันที่เรียน
+                    </button>
+                    <button
+                      onClick={() => setShowAddTimeModal(true)}
+                      className="bg-white text-pink-600 hover:bg-pink-50 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow flex items-center gap-1 transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> เพิ่มช่วงเวลา
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            levels.forEach(lvl => {
-                let isChecked = currentAssigned.includes(lvl) ? 'checked' : '';
-                contentHTML += `
-                    <label class="flex items-center gap-3 p-3 bg-pink-50/50 hover:bg-pink-100/60 rounded-xl cursor-pointer transition border border-pink-100">
-                        <input type="checkbox" name="slotLevelCheckbox" value="${lvl}" ${isChecked} class="w-4 h-4 text-pink-600 rounded focus:ring-pink-400">
-                        <span class="text-xs sm:text-sm font-bold text-gray-700">${lvl}</span>
-                    </label>
-                `;
-            });
-            contentHTML += `</div>`;
-            contentHTML += `
-                <div class="mt-4 pt-3 border-t flex justify-end">
-                    <button onclick="saveCellAssignments()" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition">บันทึกการเลือกคาบ</button>
-                </div>
-            `;
-
-            document.getElementById('modalSlotContent').innerHTML = contentHTML;
-            document.getElementById('attendanceModal').classList.remove('hidden');
-        }
-
-        function saveCellAssignments() {
-            if(!currentModalContext) return;
-            let { sIdx, dIdx } = currentModalContext;
-            let key = `${sIdx}-${dIdx}`;
-            
-            let isCancelled = document.getElementById('cancelClassCheckbox').checked;
-            let selectedLevels = [];
-
-            if (isCancelled) {
-                selectedLevels = ["❌ งดเรียน"];
-            } else {
-                let checkboxes = document.querySelectorAll('input[name="slotLevelCheckbox"]:checked');
-                checkboxes.forEach(cb => selectedLevels.push(cb.value));
-            }
-
-            slotAssignments[key] = selectedLevels;
-            saveData();
-            closeAttendanceModal();
-            renderScheduleTable();
-        }
-
-        function closeAttendanceModal() {
-            document.getElementById('attendanceModal').classList.add('hidden');
-            currentModalContext = null;
-        }
-
-        function renderNotices() {
-            const container = document.getElementById('noticeContentContainer');
-            if(!container) return;
-            let html = "";
-            customNotices.forEach((notice, idx) => {
-                html += `
-                    <div class="flex items-start justify-between gap-2 p-2.5 bg-amber-100/60 rounded-xl border border-amber-200">
-                        <div class="flex items-start gap-2">
-                            <i class="fa-solid fa-circle-exclamation text-amber-600 mt-0.5"></i>
-                            <span class="font-medium">${notice}</span>
-                        </div>
-                        <div class="teacher-only ${isAdminMode ? '' : 'hidden'} flex gap-1 flex-shrink-0">
-                            <button onclick="editNotice(${idx})" class="text-amber-700 hover:text-amber-900 text-xs px-1" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteNotice(${idx})" class="text-red-500 hover:text-red-700 text-xs px-1" title="ลบ"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-            if(isAdminMode) {
-                html += `
-                    <div class="pt-2">
-                        <button onclick="addNoticePrompt()" class="w-full py-2 bg-amber-200/60 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold border border-amber-300 transition flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-plus"></i> เพิ่มประกาศใหม่
-                        </button>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-            updateTeacherUI();
-        }
-
-        function generateAiNotice() {
-            const aiSuggestions = [
-                "ประกาศ: งดการเรียนการสอนในวันเสาร์นี้ เนื่องจากคุณครูติดภารกิจด่วน จะมีการจัดตารางเรียนชดเชยภายหลัง",
-                "แจ้งเตือนนักเรียนทุกท่าน: สัปดาห์นี้มีการทบทวนบทเรียนและทดสอบย่อยเก็บคะแนน กรุณาเตรียมสมุดแบบฝึกหัดมาให้พร้อม",
-                "ประกาศวันหยุดพิเศษ: เนื่องจากตรงกับวันหยุดนักขัตฤกษ์ สถาบันขอหยุดทำการ 1 วัน ขอให้นักเรียนทบทวนบทเรียนล่วงหน้า",
-                "แจ้งอัปเดตตารางเรียน: เพิ่มรอบพิเศษติวเข้มก่อนสอบ ขอให้นักเรียนตรวจสอบเวลาเรียนในตารางประจำสัปดาห์อีกครั้ง"
-            ];
-            let randomMsg = aiSuggestions[Math.floor(Math.random() * aiSuggestions.length)];
-            customNotices.push(randomMsg);
-            saveData();
-            renderNotices();
-            alert("AI ได้สร้างประกาศสำคัญใหม่ให้เรียบร้อยแล้ว!");
-        }
-
-        function addNoticePrompt() {
-            let msg = prompt("กรอกข้อความประกาศหรือหมายเหตุสำคัญ:");
-            if(msg && msg.trim() !== "") {
-                customNotices.push(msg.trim());
-                saveData();
-                renderNotices();
-            }
-        }
-
-        function editNotice(idx) {
-            let current = customNotices[idx];
-            let updated = prompt("แก้ไขข้อความประกาศ:", current);
-            if(updated !== null && updated.trim() !== "") {
-                customNotices[idx] = updated.trim();
-                saveData();
-                renderNotices();
-            }
-        }
-
-        function deleteNotice(idx) {
-            if(confirm("ต้องการลบประกาศนี้ใช่หรือไม่?")) {
-                customNotices.splice(idx, 1);
-                saveData();
-                renderNotices();
-            }
-        }
-
-        // --- Date & Slot Management ---
-        function openAddDateModal() {
-            document.getElementById('editDateId').value = "";
-            document.getElementById('newDateTitle').value = "";
-            document.getElementById('dateModalTitle').innerText = "เพิ่มวันสอนใหม่";
-            document.getElementById('addDateModal').classList.remove('hidden');
-        }
-
-        function openEditDateModal(id) {
-            let d = scheduleDates.find(item => item.id === id);
-            if(!d) return;
-            document.getElementById('editDateId').value = d.id;
-            document.getElementById('newDateTitle').value = d.title;
-            document.getElementById('dateModalTitle').innerText = "แก้ไขหัวข้อวันสอน";
-            document.getElementById('addDateModal').classList.remove('hidden');
-        }
-
-        function closeAddDateModal() {
-            document.getElementById('addDateModal').classList.add('hidden');
-        }
-
-        function confirmSaveDate() {
-            let id = document.getElementById('editDateId').value;
-            let title = document.getElementById('newDateTitle').value.trim();
-            if(!title) {
-                alert("กรุณากรอกหัวข้อวันที่");
-                return;
-            }
-
-            if(id) {
-                let d = scheduleDates.find(item => item.id === id);
-                if(d) d.title = title;
-            } else {
-                let newId = "d_" + Date.now();
-                scheduleDates.push({ id: newId, title: title });
-            }
-            saveData();
-            closeAddDateModal();
-            renderScheduleTable();
-        }
-
-        function deleteDateColumn(id) {
-            if(confirm("ต้องการลบคอลัมน์วันสอนนี้ใช่หรือไม่?")) {
-                scheduleDates = scheduleDates.filter(item => item.id !== id);
-                saveData();
-                renderScheduleTable();
-            }
-        }
-
-        function openAddSlotModal() {
-            document.getElementById('editSlotId').value = "";
-            document.getElementById('newSlotTime').value = "";
-            document.getElementById('slotModalTitle').innerText = "เพิ่มช่วงเวลาเรียนใหม่";
-            document.getElementById('addSlotModal').classList.remove('hidden');
-        }
-
-        function openEditSlotModal(id) {
-            let slot = scheduleSlots.find(item => (item.id === id || scheduleSlots.indexOf(item) == id));
-            if(!slot) return;
-            document.getElementById('editSlotId').value = slot.id || id;
-            document.getElementById('newSlotTime').value = slot.time || slot;
-            document.getElementById('slotModalTitle').innerText = "แก้ไขช่วงเวลาเรียน";
-            document.getElementById('addSlotModal').classList.remove('hidden');
-        }
-
-        function closeAddSlotModal() {
-            document.getElementById('addSlotModal').classList.add('hidden');
-        }
-
-        function confirmSaveSlot() {
-            let id = document.getElementById('editSlotId').value;
-            let timeStr = document.getElementById('newSlotTime').value.trim();
-            if(!timeStr) {
-                alert("กรุณากรอกช่วงเวลาเรียน");
-                return;
-            }
-
-            if(id !== "") {
-                let slot = scheduleSlots.find(item => item.id === id || scheduleSlots.indexOf(item) == id);
-                if(slot) {
-                    if(typeof slot === 'object') {
-                        slot.time = timeStr;
-                    } else {
-                        let idx = scheduleSlots.indexOf(slot);
-                        scheduleSlots[idx] = { id: "s_" + Date.now(), time: timeStr };
-                    }
-                }
-            } else {
-                let newId = "s_" + Date.now();
-                scheduleSlots.push({ id: newId, time: timeStr });
-            }
-            saveData();
-            closeAddSlotModal();
-            renderScheduleTable();
-        }
-
-        function deleteSlot(id) {
-            if(confirm("ต้องการลบช่วงเวลานี้ใช่หรือไม่?")) {
-                scheduleSlots = scheduleSlots.filter(item => item.id !== id && scheduleSlots.indexOf(item) != id);
-                saveData();
-                renderScheduleTable();
-            }
-        }
-
-        // --- Student Management ---
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentTableBody');
-            if(!tbody) return;
-            let html = "";
-            students.forEach((st, idx) => {
-                let teacherControlsHtml = isAdminMode ? `
-                    <div class="flex items-center justify-center gap-1">
-                        <button onclick="adjustAttendance(${st.id}, -1)" class="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold flex items-center justify-center transition" title="ลดจำนวนครั้ง">-</button>
-                        <button onclick="adjustAttendance(${st.id}, 1)" class="w-6 h-6 bg-pink-500 hover:bg-pink-600 text-white rounded text-xs font-bold flex items-center justify-center transition" title="เพิ่มจำนวนครั้ง">+</button>
-                    </div>
-                ` : '';
-
-                let actionColHtml = isAdminMode ? `
-                    <div class="flex items-center justify-center gap-2">
-                        <button onclick="openStudentModal(${st.id})" class="text-blue-500 hover:text-blue-700 p-1.5" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteStudent(${st.id})" class="text-red-500 hover:text-red-700 p-1.5" title="ลบ"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                ` : '';
-
-                html += `
-                    <tr class="hover:bg-gray-50/80 transition">
-                        <td class="p-4 font-bold text-gray-800">${st.name}</td>
-                        <td class="p-4"><span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-bold">${st.level}</span></td>
-                        <td class="p-4 text-gray-600">${st.timeSlot}</td>
-                        <td class="p-4 text-center font-bold text-purple-600">
-                            <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-                                <span class="text-base px-2 py-0.5 bg-purple-50 rounded-lg border border-purple-100" id="attCount-${st.id}">${attendance[st.id] || 0}</span>
-                                ${teacherControlsHtml}
-                            </div>
-                        </td>
-                        <td class="p-4 text-center teacher-only ${isAdminMode ? '' : 'hidden'}">
-                            ${actionColHtml}
-                        </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-            updateTeacherUI();
-        }
-
-        function adjustAttendance(studentId, delta) {
-            if(!isAdminMode) {
-                alert("เฉพาะคุณครูเท่านั้นที่สามารถบันทึกหรือเช็คชื่อได้");
-                return;
-            }
-            if(!attendance[studentId]) attendance[studentId] = 0;
-            attendance[studentId] += delta;
-            if(attendance[studentId] < 0) attendance[studentId] = 0;
-            saveData();
-            document.getElementById(`attCount-${studentId}`).innerText = attendance[studentId];
-        }
-
-        function openStudentModal(id = null) {
-            if(!isAdminMode) return;
-            updateDropdowns();
-            document.getElementById('editStudentId').value = id || "";
-            if(id) {
-                let st = students.find(item => item.id === id);
-                if(!st) return;
-                document.getElementById('studentModalTitle').innerText = "แก้ไขข้อมูลนักเรียน";
-                document.getElementById('inputStudentName').value = st.name;
-                document.getElementById('inputStudentLevel').value = st.level;
-                document.getElementById('inputStudentTimeSlot').value = st.timeSlot;
-                document.getElementById('inputStudentFee').value = st.fee || 1500;
-            } else {
-                document.getElementById('studentModalTitle').innerText = "เพิ่มนักเรียนใหม่";
-                document.getElementById('inputStudentName').value = "";
-                document.getElementById('inputStudentFee').value = "1500";
-            }
-            document.getElementById('studentModal').classList.remove('hidden');
-        }
-
-        function closeStudentModal() {
-            document.getElementById('studentModal').classList.add('hidden');
-        }
-
-        function saveStudentData() {
-            let id = document.getElementById('editStudentId').value;
-            let name = document.getElementById('inputStudentName').value.trim();
-            let level = document.getElementById('inputStudentLevel').value;
-            let timeSlot = document.getElementById('inputStudentTimeSlot').value;
-            let fee = parseInt(document.getElementById('inputStudentFee').value) || 1500;
-
-            if(!name) {
-                alert("กรุณากรอกชื่อ-นามสกุลนักเรียน");
-                return;
-            }
-
-            if(id) {
-                let st = students.find(item => item.id == id);
-                if(st) {
-                    st.name = name;
-                    st.level = level;
-                    st.timeSlot = timeSlot;
-                    st.fee = fee;
-                }
-            } else {
-                let newSt = {
-                    id: Date.now(),
-                    name: name,
-                    level: level,
-                    timeSlot: timeSlot,
-                    fee: fee,
-                    paid: false
-                };
-                students.push(newSt);
-                attendance[newSt.id] = 0;
-            }
-            saveData();
-            closeStudentModal();
-            renderAll();
-        }
-
-        function deleteStudent(id) {
-            if(confirm("ต้องการลบนักเรียนคนนี้ออกจากระบบใช่หรือไม่?")) {
-                students = students.filter(item => item.id !== id);
-                delete attendance[id];
-                saveData();
-                renderAll();
-            }
-        }
-
-        // --- Payment Tracking ---
-        function renderPaymentTable() {
-            const tbody = document.getElementById('paymentTableBody');
-            if(!tbody) return;
-            let html = "";
-            let paidCount = 0;
-
-            students.forEach(st => {
-                if(st.paid) paidCount++;
-                html += `
-                    <tr class="hover:bg-gray-50/80 transition">
-                        <td class="p-4 font-bold text-gray-800">${st.name}</td>
-                        <td class="p-4"><span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-bold">${st.level}</span></td>
-                        <td class="p-4 text-gray-600">${st.timeSlot}</td>
-                        <td class="p-4 font-bold text-emerald-600 teacher-only ${isAdminMode ? '' : 'hidden'}">${st.fee || 1500} บาท</td>
-                        <td class="p-4 text-center">
-                            <button onclick="togglePayment(${st.id})" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition shadow-xs ${st.paid ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}">
-                                ${st.paid ? '<i class="fa-solid fa-check"></i> ชำระแล้ว' : '<i class="fa-solid fa-clock"></i> ยังไม่ชำระ'}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-pink-100/70 text-pink-700 text-xs sm:text-sm font-extrabold border-b-2 border-pink-200 text-center">
+                      <th className="p-3 sm:p-4 border-r border-pink-200 w-36">เวลาเรียน</th>
+                      {dateColumns.map((col) => (
+                        <th key={col.id} className="p-3 sm:p-4 border-r border-pink-200 relative group/col">
+                          <div>
+                            {col.title}<br/>
+                            <span className="text-xs font-normal text-slate-600">{col.sub}</span>
+                          </div>
+                          {role === 'teacher' && (
+                            <button
+                              onClick={() => handleDeleteDateColumn(col.id)}
+                              className="absolute top-1 right-1 bg-rose-500 text-white p-1 rounded-lg opacity-0 group-hover/col:opacity-100 transition shadow"
+                              title="ลบคอลัมน์วันที่นี้"
+                            >
+                              <Trash2 className="w-3 h-3" />
                             </button>
-                        </td>
+                          )}
+                        </th>
+                      ))}
                     </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-            document.getElementById('paidTotalCount').innerText = `${paidCount} / ${students.length}`;
-            updateTeacherUI();
-        }
-
-        function togglePayment(id) {
-            let st = students.find(item => item.id === id);
-            if(st) {
-                st.paid = !st.paid;
-                saveData();
-                renderPaymentTable();
-            }
-        }
-
-        // --- Level Management ---
-        function renderLevelList() {
-            const tbody = document.getElementById('levelTableBody');
-            if(!tbody) return;
-            let html = "";
-            levels.forEach((lvl, idx) => {
-                html += `
-                    <tr class="hover:bg-purple-50/50 transition">
-                        <td class="p-4 font-bold text-purple-900">${lvl}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="deleteLevel(${idx})" class="text-red-500 hover:text-red-700 p-1.5" title="ลบระดับชั้น"><i class="fa-solid fa-trash"></i></button>
+                  </thead>
+                  <tbody className="text-xs sm:text-sm font-semibold divide-y divide-pink-100 text-center">
+                    {timeSlots.map((timeSlot, tIdx) => (
+                      <tr key={tIdx} className="hover:bg-pink-50/55 transition-colors group/row">
+                        <td className="p-3 sm:p-4 border-r border-pink-200 bg-pink-50/40 text-pink-800 font-bold relative">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Clock className="w-4 h-4 text-pink-500 shrink-0" />
+                            <span className="whitespace-pre-line">{timeSlot.time}</span>
+                          </div>
+                          {role === 'teacher' && (
+                            <div className="absolute left-1 top-1 flex gap-1 opacity-0 group-hover/row:opacity-100 transition">
+                              <button
+                                onClick={() => { setEditingTimeIndex(tIdx); setEditingTimeText(timeSlot.time); }}
+                                className="bg-sky-500 hover:bg-sky-600 text-white p-1 rounded-lg shadow"
+                                title="แก้ไขช่วงเวลานี้"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTimeSlot(tIdx)}
+                                className="bg-rose-400 hover:bg-rose-600 text-white p-1 rounded-lg shadow"
+                                title="ลบช่วงเวลานี้"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </td>
+
+                        {dateColumns.map((col) => {
+                          const cellData = timeSlot.data[col.id] || { text: 'ว่าง', type: 'normal' };
+                          return (
+                            <td key={col.id} className="p-3 sm:p-4 border-r border-pink-200 relative group/cell">
+                              <ScheduleCellContent 
+                                data={cellData} 
+                                role={role} 
+                                onEdit={() => { setEditingCell({ timeIndex: tIdx, colId: col.id }); setEditFormValue(cellData); }} 
+                              />
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Notes & Encouragement */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 bg-gradient-to-br from-yellow-50 to-amber-100 border-3 border-amber-300 rounded-3xl p-6 shadow-md relative overflow-hidden">
+                <div className="absolute top-3 right-3 text-amber-300">
+                  <Bell className="w-8 h-8 opacity-40 animate-bounce" />
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-amber-800 font-extrabold text-lg">
+                    <span className="bg-amber-400 text-white p-2 rounded-xl shadow">
+                      <AlertCircle className="w-5 h-5" />
+                    </span>
+                    หมายเหตุสำคัญ
+                  </div>
+                  {role === 'teacher' && (
+                    <form onSubmit={handleAddNote} className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="เพิ่มหมายเหตุใหม่..."
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                        className="text-xs border border-amber-300 rounded-xl px-3 py-1.5 bg-white/90 focus:outline-none"
+                      />
+                      <button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">
+                        + เพิ่ม
+                      </button>
+                    </form>
+                  )}
+                </div>
+
+                <ul className="space-y-2.5 text-sm text-slate-700">
+                  {notes.map((note, idx) => (
+                    <li key={idx} className="flex items-center justify-between bg-white/80 p-2.5 rounded-2xl border border-amber-200 shadow-sm">
+                      <div className="flex items-start gap-2.5 flex-1">
+                        <span className="bg-pink-500 text-white p-1 rounded-full text-xs mt-0.5">
+                          <Check className="w-3 h-3" />
+                        </span>
+                        {editingNoteIndex === idx ? (
+                          <input
+                            type="text"
+                            value={noteEditText}
+                            onChange={(e) => setNoteEditText(e.target.value)}
+                            className="text-xs border border-pink-300 rounded-lg px-2 py-1 w-full font-medium"
+                          />
+                        ) : (
+                          <span className="flex-1 text-xs sm:text-sm">{note}</span>
+                        )}
+                      </div>
+
+                      {role === 'teacher' && (
+                        <div className="flex items-center gap-1.5 ml-2">
+                          {editingNoteIndex === idx ? (
+                            <button
+                              onClick={() => handleSaveEditNote(idx)}
+                              className="bg-emerald-500 text-white px-2 py-1 rounded-lg text-xs font-bold"
+                            >
+                              บันทึก
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => { setEditingNoteIndex(idx); setNoteEditText(note); }}
+                              className="text-sky-600 hover:text-sky-800 p-1 rounded-lg hover:bg-sky-50"
+                              title="แก้ไขหมายเหตุ"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteNote(idx)}
+                            className="text-rose-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50"
+                            title="ลบหมายเหตุ"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Kawaii Encouragement Card */}
+              <div className="bg-gradient-to-br from-pink-200 to-rose-200 border-3 border-pink-400 rounded-3xl p-6 shadow-md flex flex-col justify-between text-center relative overflow-hidden">
+                <div className="absolute -bottom-6 -right-6 text-pink-300 opacity-30">
+                  <Heart className="w-32 h-32 fill-current" />
+                </div>
+                <div>
+                  <div className="inline-block bg-white text-pink-600 px-4 py-1.5 rounded-full font-extrabold text-xs shadow mb-3">
+                    ข้อความจากคุณครู
+                  </div>
+                  <h3 className="text-xl font-extrabold text-pink-800 mb-2">ตั้งใจเรียนกันนะคะ!</h3>
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    "ครูแนน ขอเป็นกำลังใจให้นักเรียนทุกคนนะคะ ตั้งใจทำโจทย์ ฝึกฝนบ่อยๆ คณิตศาสตร์ไม่ยากอย่างที่คิดค่ะสู้ๆ!"
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-pink-300/60 font-bold text-pink-900 text-xs flex items-center justify-center gap-1">
+                  <Sparkles className="w-4 h-4 text-yellow-500" /> ครูแนนคณิตศาสตร์สุดน่ารัก
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: ROSTER & ATTENDANCE */}
+        {activeTab === 'roster' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between bg-white/90 p-5 rounded-3xl border-2 border-sky-300 shadow-md gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-sky-400 text-white p-3 rounded-2xl shadow">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-sky-700">รายชื่อนักเรียน & ระบบเช็คชื่อเข้าเรียน</h3>
+                  <p className="text-xs text-slate-500">
+                    {role === 'teacher' ? 'คลิกที่ชื่อระดับชั้น เพื่อเปิดป๊อปอัปเช็คชื่อด่วนได้ทันที!' : 'นักเรียนสามารถตรวจสอบรายชื่อเพื่อนและจำนวนครั้งที่เข้าเรียนได้'}
+                  </p>
+                </div>
+              </div>
+              {role === 'teacher' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowAddClassModal(true)}
+                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition"
+                  >
+                    <Plus className="w-4 h-4" /> เพิ่มคลาสใหม่
+                  </button>
+                  <span className="text-xs bg-pink-100 text-pink-700 font-bold px-3 py-1.5 rounded-xl border border-pink-300 hidden sm:inline-block">
+                    โหมดครู
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(rosters).map(([className, students]) => (
+                <div key={className} className="bg-white border-2 border-sky-200 rounded-3xl p-5 shadow-md flex flex-col justify-between relative group/classcard">
+                  {role === 'teacher' && (
+                    <button
+                      onClick={() => handleRemoveClass(className)}
+                      className="absolute top-4 right-4 bg-rose-100 hover:bg-rose-500 text-rose-500 hover:text-white p-1.5 rounded-xl transition shadow"
+                      title="ลบคลาสนี้"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <div>
+                    <div className="flex items-center justify-between mb-4 border-b border-sky-100 pb-3 pr-10">
+                      <button
+                        onClick={() => role === 'teacher' && setActiveAttendanceClass(className)}
+                        className={`font-extrabold text-base flex items-center gap-2 transition text-left ${
+                          role === 'teacher' ? 'hover:text-pink-600 cursor-pointer group/title' : ''
+                        }`}
+                        title={role === 'teacher' ? 'คลิกเพื่อเปิดป๊อปอัปเช็คชื่อด่วน' : ''}
+                      >
+                        <BookOpen className="w-5 h-5 text-pink-500" />
+                        <span>คลาส: {className}</span>
+                        {role === 'teacher' && (
+                          <span className="text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold opacity-80 group-hover/title:scale-105 transition">
+                            เช็คชื่อด่วน
+                          </span>
+                        )}
+                      </button>
+                      <span className="bg-sky-100 text-sky-700 font-bold text-xs px-2.5 py-1 rounded-full">
+                        {students.length} คน
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5 mb-4 max-h-64 overflow-y-auto pr-1">
+                      {students.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-4">ยังไม่มีนักเรียนในคลาสนี้</p>
+                      ) : (
+                        students.map((st, idx) => (
+                          <div key={st.id} className="flex items-center justify-between bg-sky-50/50 hover:bg-sky-50 p-3 rounded-2xl border border-sky-100 transition">
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-7 h-7 rounded-full bg-sky-200 text-sky-800 text-xs font-extrabold flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <div>
+                                <p className="text-xs sm:text-sm font-bold text-slate-800">{st.name}</p>
+                                <p className="text-[11px] text-slate-500">ชื่อเล่น: {st.nickname} | <span className="text-pink-600 font-bold">เข้าเรียนแล้ว: {st.attendedCount || 0} ครั้ง</span></p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              {role === 'teacher' ? (
+                                <div className="flex items-center gap-1 bg-white border border-sky-200 rounded-xl p-1 shadow-sm">
+                                  <button
+                                    onClick={() => handleDecrementAttendance(className, st.id)}
+                                    className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold text-xs flex items-center justify-center"
+                                    title="ลดจำนวนครั้ง"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="text-xs font-extrabold text-sky-700 px-1.5">{st.attendedCount || 0}</span>
+                                  <button
+                                    onClick={() => handleIncrementAttendance(className, st.id)}
+                                    className="w-6 h-6 rounded-lg bg-sky-500 text-white hover:bg-sky-600 font-bold text-xs flex items-center justify-center shadow"
+                                    title="เช็คชื่อ (+1 ครั้ง)"
+                                  >
+                                    +
+                                  </button>
+                                  <button 
+                                    onClick={() => handleRemoveStudent(className, st.id)}
+                                    className="text-rose-400 hover:text-rose-600 p-1 ml-1 hover:bg-rose-50 rounded-lg transition"
+                                    title="ลบรายชื่อ"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-xl text-xs font-extrabold border border-emerald-300">
+                                  เข้าเรียน {st.attendedCount || 0} ครั้ง
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {role === 'teacher' && (
+                    <button
+                      onClick={() => setAddingClassKey(className)}
+                      className="w-full mt-2 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-sm transition"
+                    >
+                      <Plus className="w-4 h-4" /> เพิ่มนักเรียนในคลาสนี้
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: PAYMENTS */}
+        {activeTab === 'payments' && (
+          <div className="space-y-6">
+            <div className="bg-white/90 p-6 rounded-3xl border-2 border-emerald-300 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-emerald-500 text-white p-3 rounded-2xl shadow">
+                  <CreditCard className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-emerald-800">ระบบตรวจสอบการชำระค่าเรียนพิเศษ</h3>
+                  <p className="text-xs text-slate-500">
+                    {role === 'teacher' ? 'คุณครูสามารถตรวจสอบยอดรายได้และจัดการสถานะค่าเรียนได้ที่นี่' : 'ตรวจสอบสถานะค่าเรียนของคุณ (โหมดนักเรียน: ดูอย่างเดียว)'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-center">
+                  <p className="text-[10px] text-slate-500 font-bold">ชำระแล้ว</p>
+                  <p className="text-sm font-extrabold text-emerald-600">
+                    {Object.values(rosters).flat().filter(s => s.status === 'paid').length} คน
+                  </p>
+                </div>
+                <div className="bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-center">
+                  <p className="text-[10px] text-slate-500 font-bold">ค้างชำระ</p>
+                  <p className="text-sm font-extrabold text-rose-600">
+                    {Object.values(rosters).flat().filter(s => s.status === 'unpaid').length} คน
+                  </p>
+                </div>
+                {role === 'teacher' && (
+                  <div className="bg-pink-50 border-2 border-pink-300 px-4 py-1.5 rounded-xl text-center">
+                    <p className="text-[10px] text-pink-600 font-extrabold">รายได้รวมเดือนนี้</p>
+                    <p className="text-sm font-extrabold text-pink-700">
+                      {Object.values(rosters).flat()
+                        .filter(s => s.status === 'paid')
+                        .reduce((sum, s) => sum + (s.fee || 0), 0)
+                        .toLocaleString()} ฿
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-emerald-200 rounded-3xl shadow-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-emerald-100/70 text-emerald-800 text-xs sm:text-sm font-extrabold border-b border-emerald-200">
+                      <th className="p-4">ชื่อ - นามสกุล</th>
+                      <th className="p-4">ชื่อเล่น</th>
+                      <th className="p-4">ระดับชั้น / คลาส</th>
+                      {role === 'teacher' && <th className="p-4 text-right">ยอดเงินค่าเรียน</th>}
+                      <th className="p-4 text-center">สถานะการชำระเงิน</th>
+                      {role === 'teacher' && <th className="p-4 text-center">จัดการ</th>}
                     </tr>
-                `;
-            });
-            tbody.innerHTML = html;
-        }
+                  </thead>
+                  <tbody className="divide-y divide-emerald-50 text-xs sm:text-sm font-medium">
+                    {Object.entries(rosters).flatMap(([className, students]) => 
+                      students.map(st => ({ ...st, className }))
+                    ).map((st) => (
+                      <tr key={st.id} className="hover:bg-emerald-50/40 transition">
+                        <td className="p-4 font-bold text-slate-800 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                          {st.name}
+                        </td>
+                        <td className="p-4 text-slate-600">{st.nickname}</td>
+                        <td className="p-4">
+                          <span className="bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full text-xs font-bold">
+                            {st.className}
+                          </span>
+                        </td>
+                        {role === 'teacher' && (
+                          <td className="p-4 text-right font-extrabold text-pink-600">
+                            <div className="inline-flex items-center gap-1.5">
+                              <span>{(st.fee || 0).toLocaleString()} ฿</span>
+                              <button
+                                onClick={() => { setEditingFeeStudent({ className: st.className, studentId: st.id, fee: st.fee || 0 }); setFeeInputVal(st.fee || 0); }}
+                                className="text-slate-400 hover:text-pink-600 p-1 rounded-lg hover:bg-pink-50"
+                                title="แก้ไขยอดเงิน"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                        <td className="p-4 text-center">
+                          {st.status === 'paid' ? (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-extrabold border border-emerald-300">
+                              <CheckCircle className="w-4 h-4 text-emerald-500" /> ชำระแล้ว
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-xs font-extrabold border border-rose-300">
+                              <XCircle className="w-4 h-4 text-rose-500" /> ยังไม่ชำระ
+                            </span>
+                          )}
+                        </td>
+                        {role === 'teacher' && (
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => togglePaymentStatus(st.className, st.id)}
+                              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition shadow-sm ${
+                                st.status === 'paid'
+                                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-800'
+                                  : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                              }`}
+                            >
+                              {st.status === 'paid' ? 'เปลี่ยนเป็นยังไม่จ่าย' : 'อนุมัติรับเงิน'}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
-        function openLevelModal() {
-            if(!isAdminMode) return;
-            document.getElementById('inputLevelName').value = "";
-            document.getElementById('levelModal').classList.remove('hidden');
-        }
+      </main>
 
-        function closeLevelModal() {
-            document.getElementById('levelModal').classList.add('hidden');
-        }
+      {/* FOOTER */}
+      <footer className="max-w-5xl mx-auto px-4 mt-12 text-center text-xs text-slate-500 border-t border-pink-200 pt-6">
+        <p className="font-bold text-pink-600 mb-1">ครูแนน ขอเป็นกำลังใจให้นักเรียนทุกคนนะคะ</p>
+        <p>© 2569 เรียนพิเศษคณิตศาสตร์ ครูแนน • Kawaii Pastel Design System</p>
+      </footer>
 
-        function saveLevelData() {
-            let lvlName = document.getElementById('inputLevelName').value.trim();
-            if(!lvlName) {
-                alert("กรุณากรอกชื่อระดับชั้น");
-                return;
-            }
-            if(levels.includes(lvlName)) {
-                alert("มีระดับชั้นนี้อยู่ในระบบแล้ว");
-                return;
-            }
-            levels.push(lvlName);
-            saveData();
-            closeLevelModal();
-            renderAll();
-        }
+      {/* MODAL: TEACHER PIN LOGIN */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Key className="w-5 h-5 text-pink-500" /> เข้าสู่โหมดครูแนน
+              </h3>
+              <button 
+                onClick={() => { setShowPinModal(false); setPinInput(''); setPinError(false); }}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
 
-        function deleteLevel(idx) {
-            if(levels.length <= 1) {
-                alert("ต้องมีระดับชั้นอย่างน้อย 1 ระดับในระบบ");
-                return;
-            }
-            if(confirm(`ต้องการลบระดับชั้น "${levels[idx]}" ใช่หรือไม่?`)) {
-                levels.splice(idx, 1);
-                saveData();
-                renderAll();
-            }
-        }
+            <form onSubmit={handleVerifyPin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">กรุณากรอกรหัส PIN ครู (123456)</label>
+                <input
+                  type="password"
+                  maxLength="6"
+                  autoFocus
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  className={`w-full border-2 rounded-2xl px-4 py-3 text-center tracking-widest text-lg font-bold focus:outline-none ${
+                    pinError ? 'border-rose-400 text-rose-600 bg-rose-50' : 'border-pink-200 focus:border-pink-500'
+                  }`}
+                  placeholder="******"
+                />
+                {pinError && <p className="text-[11px] text-rose-500 font-bold mt-1 text-center">รหัสผ่านไม่ถูกต้อง (ลองใช้ 123456)</p>}
+              </div>
 
-        function updateDropdowns() {
-            const levelSelect = document.getElementById('inputStudentLevel');
-            const timeSelect = document.getElementById('inputStudentTimeSlot');
-            
-            if(levelSelect) {
-                let lHtml = "";
-                levels.forEach(l => lHtml += `<option value="${l}">${l}</option>`);
-                levelSelect.innerHTML = lHtml;
-            }
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowPinModal(false); setPinInput(''); setPinError(false); }}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  ยืนยันรหัส
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-            if(timeSelect) {
-                let tHtml = "";
-                scheduleSlots.forEach(s => tHtml += `<option value="${s.time}">${s.time}</option>`);
-                timeSelect.innerHTML = tHtml;
-            }
-        }
+      {/* MODAL: EDIT SCHEDULE CELL */}
+      {editingCell && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-pink-500" /> แก้ไขคาบเรียนในตาราง
+              </h3>
+              <button 
+                onClick={() => setEditingCell(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
 
-        function changeMonth(val) {
-            if(!val) return;
-            const [year, month] = val.split('-');
-            const thaiMonths = ["", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            currentMonth = thaiMonths[parseInt(month)];
-            currentYear = parseInt(year) + 543;
-            document.getElementById('currentMonthTitle').innerText = `ตารางเรียนเดือน ${currentMonth} ${currentYear}`;
-        }
-    </script>
-</body>
-</html>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ข้อความในช่องตาราง</label>
+                <input
+                  type="text"
+                  value={editFormValue.text}
+                  onChange={(e) => setEditFormValue({ ...editFormValue, text: e.target.value })}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                  placeholder="เช่น ประถม / ม.ต้น หรือ งดเรียน"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">สถานะคาบเรียน</label>
+                <select
+                  value={editFormValue.type}
+                  onChange={(e) => setEditFormValue({ ...editFormValue, type: e.target.value })}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium bg-white"
+                >
+                  <option value="normal">คาบปกติ (สีฟ้าพาสเทล)</option>
+                  <option value="cancelled">คาบงดเรียน (สีชมพูอ่อน)</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setEditingCell(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleSaveCell}
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  บันทึกข้อมูล
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD NEW DATE COLUMN */}
+      {showAddDateModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-pink-500" /> เพิ่มช่องวันที่เรียนใหม่
+              </h3>
+              <button 
+                onClick={() => setShowAddDateModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddDateColumn} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">วันที่เรียน (เช่น 30 พ.ย. 69)</label>
+                <input
+                  type="text"
+                  required
+                  value={newDateTitle}
+                  onChange={(e) => setNewDateTitle(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                  placeholder="เช่น 30 พ.ย. 69"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">วันในสัปดาห์ / หมายเหตุย่อ (เช่น (จ.))</label>
+                <input
+                  type="text"
+                  value={newDateSub}
+                  onChange={(e) => setNewDateSub(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                  placeholder="เช่น (อา.)"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddDateModal(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  เพิ่มช่องวันที่
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD NEW TIME SLOT */}
+      {showAddTimeModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Clock className="w-5 h-5 text-pink-500" /> เพิ่มช่วงเวลาเรียนใหม่
+              </h3>
+              <button 
+                onClick={() => setShowAddTimeModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTimeSlot} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ช่วงเวลา (เช่น 08.00 – 10.00 น.)</label>
+                <input
+                  type="text"
+                  required
+                  value={newTimeSlotText}
+                  onChange={(e) => setNewTimeSlotText(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                  placeholder="เช่น 08.00 – 10.00 น."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddTimeModal(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  เพิ่มช่วงเวลา
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT TIME SLOT */}
+      {editingTimeIndex !== null && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Clock className="w-5 h-5 text-pink-500" /> แก้ไขช่วงเวลาเรียน
+              </h3>
+              <button 
+                onClick={() => setEditingTimeIndex(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditTimeSlot} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">แก้ไขช่วงเวลา</label>
+                <input
+                  type="text"
+                  required
+                  value={editingTimeText}
+                  onChange={(e) => setEditingTimeText(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingTimeIndex(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  บันทึกการแก้ไข
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD STUDENT */}
+      {addingClassKey && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-sky-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-sky-100">
+              <h3 className="font-extrabold text-sky-700 text-base flex items-center gap-2">
+                <Users className="w-5 h-5 text-sky-500" /> เพิ่มนักเรียน ({addingClassKey})
+              </h3>
+              <button 
+                onClick={() => setAddingClassKey(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStudent} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ชื่อ - นามสกุลจริง</label>
+                <input
+                  type="text"
+                  required
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.target.value)}
+                  className="w-full border-2 border-sky-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 font-medium"
+                  placeholder="เช่น ด.ช. รักเรียน ขยันดี"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ชื่อเล่น</label>
+                <input
+                  type="text"
+                  value={newStudentNick}
+                  onChange={(e) => setNewStudentNick(e.target.value)}
+                  className="w-full border-2 border-sky-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 font-medium"
+                  placeholder="เช่น น้องภูมิ"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setAddingClassKey(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  บันทึกเพิ่มนักเรียน
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD NEW CLASS */}
+      {showAddClassModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-sky-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-sky-100">
+              <h3 className="font-extrabold text-sky-700 text-base flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-sky-500" /> เพิ่มคลาสเรียนใหม่
+              </h3>
+              <button 
+                onClick={() => setShowAddClassModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddClass} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ชื่อคลาสเรียน / ระดับชั้น (เช่น ม.3 กลุ่มพิเศษ)</label>
+                <input
+                  type="text"
+                  required
+                  value={newClassName}
+                  onChange={(e) => setNewClassName(e.target.value)}
+                  className="w-full border-2 border-sky-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 font-medium"
+                  placeholder="เช่น ม.3 กลุ่มพิเศษ"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddClassModal(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  สร้างคลาสใหม่
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: QUICK ATTENDANCE POPUP */}
+      {activeAttendanceClass && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-pink-100">
+              <div className="flex items-center gap-2">
+                <span className="bg-pink-500 text-white p-2 rounded-xl shadow">
+                  <UserCheck className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-extrabold text-pink-700 text-base">เช็คชื่อด่วน: คลาส {activeAttendanceClass}</h3>
+                  <p className="text-[11px] text-slate-500">คลิกปุ่ม (+) หรือ (-) เพื่อบันทึกจำนวนครั้งที่เข้าเรียนทันที</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setActiveAttendanceClass(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1 mb-4">
+              {rosters[activeAttendanceClass] && rosters[activeAttendanceClass].length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-6">ยังไม่มีนักเรียนในคลาสนี้</p>
+              ) : (
+                rosters[activeAttendanceClass]?.map((st, idx) => (
+                  <div key={st.id} className="flex items-center justify-between bg-pink-50/60 p-3 rounded-2xl border border-pink-200 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-full bg-pink-200 text-pink-800 text-xs font-extrabold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <p className="text-xs sm:text-sm font-bold text-slate-800">{st.name} <span className="text-slate-500 font-normal">({st.nickname})</span></p>
+                        <p className="text-xs text-pink-600 font-extrabold">มาเรียนแล้ว: {st.attendedCount || 0} คาบ</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 bg-white border border-pink-300 rounded-2xl p-1 shadow-sm">
+                      <button
+                        onClick={() => handleDecrementAttendance(activeAttendanceClass, st.id)}
+                        className="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs flex items-center justify-center transition"
+                        title="ลดจำนวนครั้ง"
+                      >
+                        -
+                      </button>
+                      <span className="text-xs font-extrabold text-pink-700 px-2 min-w-[24px] text-center">{st.attendedCount || 0}</span>
+                      <button
+                        onClick={() => handleIncrementAttendance(activeAttendanceClass, st.id)}
+                        className="w-7 h-7 rounded-xl bg-pink-600 text-white hover:bg-pink-700 font-bold text-xs flex items-center justify-center shadow transition"
+                        title="เช็คชื่อ (+1 คาบ)"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-pink-100 flex justify-end">
+              <button
+                onClick={() => setActiveAttendanceClass(null)}
+                className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 px-6 rounded-2xl text-xs shadow-md transition"
+              >
+                เสร็จสิ้น
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT MONTH / YEAR */}
+      {showEditMonthModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-pink-500" /> เปลี่ยนเดือน/ปีของตารางเรียน
+              </h3>
+              <button 
+                onClick={() => setShowEditMonthModal(false)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMonthYear} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ระบุเดือนและปี (เช่น ธันวาคม 2569)</label>
+                <input
+                  type="text"
+                  required
+                  value={newMonthYearInput}
+                  onChange={(e) => setNewMonthYearInput(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-500 font-medium"
+                  placeholder="เช่น ธันวาคม 2569"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditMonthModal(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  บันทึกเปลี่ยนเดือน
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT STUDENT FEE AMOUNT */}
+      {editingFeeStudent && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-pink-400 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-pink-100">
+              <h3 className="font-extrabold text-pink-700 text-base flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-pink-500" /> กำหนดค่าเรียนพิเศษ
+              </h3>
+              <button 
+                onClick={() => setEditingFeeStudent(null)}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveFee} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">ระบุจำนวนเงินค่าเรียน (บาท)</label>
+                <input
+                  type="number"
+                  required
+                  value={feeInputVal}
+                  onChange={(e) => setFeeInputVal(e.target.value)}
+                  className="w-full border-2 border-pink-200 rounded-2xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:border-pink-500"
+                  placeholder="เช่น 1500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingFeeStudent(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-2xl text-xs transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white font-bold py-2.5 rounded-2xl text-xs shadow-md transition"
+                >
+                  บันทึกยอดเงิน
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+// Sub-component for schedule table cell content
+function ScheduleCellContent({ data, role, onEdit }) {
+  const isCancelled = data.type === 'cancelled' || data.text.includes('งดเรียน');
+
+  return (
+    <div className="relative group/cell py-2 px-1 flex flex-col items-center justify-center min-h-[60px]">
+      <div 
+        className={`w-full py-2 px-3 rounded-2xl font-bold text-xs sm:text-sm shadow-sm transition-all duration-200 ${
+          isCancelled
+            ? 'bg-pink-100 text-pink-700 border-2 border-pink-300 animate-pulse'
+            : 'bg-sky-50 text-sky-900 border border-sky-200 hover:bg-sky-100'
+        }`}
+      >
+        <span className="whitespace-pre-line">{data.text}</span>
+      </div>
+
+      {role === 'teacher' && (
+        <button
+          onClick={onEdit}
+          className="absolute top-1 right-1 bg-pink-600 hover:bg-pink-700 text-white p-1.5 rounded-xl shadow opacity-0 group-hover/cell:opacity-100 transition-all transform scale-90 hover:scale-105"
+          title="แก้ไขช่องนี้"
+        >
+          <Edit3 className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
