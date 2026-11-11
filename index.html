@@ -5,100 +5,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เรียนพิเศษคณิตศาสตร์ ครูแนน</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Kanit', sans-serif; }</style>
 </head>
-<body class="bg-sky-50 text-slate-700 min-h-screen p-4 md:p-6">
-    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl p-4 md:p-6 border-4 border-pink-200">
-        
-        <div class="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-pink-100 to-sky-100 p-4 rounded-2xl mb-6 gap-4 shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="text-3xl">👩‍🏫📐</span>
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-pink-600">เรียนพิเศษคณิตศาสตร์ ครูแนน</h1>
-                    <p class="text-sm text-sky-600 font-medium">ระบบจัดการตารางเรียนและเช็คชื่อนักเรียน</p>
-                </div>
-            </div>
-            <div class="flex items-center bg-white p-1 rounded-2xl shadow-inner border border-pink-200">
-                <button onclick="switchRole('student')" id="btnStudent" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500 text-white shadow transition">🎓 โหมดนักเรียน</button>
-                <button onclick="switchRole('teacher')" id="btnTeacher" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 transition">👩‍🏫 โหมดครู (PIN)</button>
-            </div>
-        </div>
+<body class="bg-sky-50 text-slate-700 min-h-screen">
+    <div id="root"></div>
 
-        <div class="text-center bg-gradient-to-r from-sky-400 to-blue-500 text-white py-4 px-4 rounded-2xl mb-6 shadow-md">
-            <h2 class="text-lg md:text-xl font-bold">🗓️ ตารางเรียนพิเศษ ประจำเดือน พฤศจิกายน 2569</h2>
-            <p id="roleDesc" class="text-xs text-sky-100 mt-1">💡 โหมดนักเรียน: ดูตารางเรียน เช็คชื่อ และตรวจสอบค่าเรียนพิเศษ</p>
-        </div>
+    <script type="text/babel">
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-80usWoZI1rKT-9wgesJcYhg6y2iNXWQonx7Jb91b-1GMxi-nvnUB1qcFrfcwFiI/exec";
 
-        <div class="flex border-b border-pink-100 mb-6 gap-2 overflow-x-auto pb-2">
-            <button onclick="switchTab('schedule')" id="tabSchedule" class="px-5 py-3 rounded-2xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-md transition">📅 ตารางเรียนหลัก</button>
-            <button onclick="switchTab('roster')" id="tabRoster" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-sky-200 transition">👥 รายชื่อ & เช็คชื่อ</button>
-            <button onclick="switchTab('payment')" id="tabPayment" class="px-5 py-3 rounded-2xl font-bold text-sm bg-white text-slate-600 border border-emerald-200 transition">💳 ชำระค่าเรียนพิเศษ</button>
-        </div>
+        function App() {
+            const [role, setRole] = React.useState('student');
+            const [showPinModal, setShowPinModal] = React.useState(false);
+            const [pinInput, setPinInput] = React.useState('');
+            const [pinError, setPinError] = React.useState(false);
+            const [activeTab, setActiveTab] = React.useState('schedule');
+            const [toastMessage, setToastMessage] = React.useState('');
+            const [loading, setLoading] = React.useState(true);
 
-        <div id="contentSchedule" class="space-y-6">
-            <div class="overflow-x-auto rounded-2xl border-2 border-sky-100 shadow-sm bg-white p-4 text-center">
-                <p class="font-bold text-pink-600">ตารางเรียนและข้อมูลระบบพร้อมใช้งานแล้ว</p>
-            </div>
-        </div>
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 3000);
+            };
 
-        <div id="contentRoster" class="hidden space-y-4">
-            <h2 class="text-lg font-bold text-pink-600">👥 รายชื่อนักเรียนในคลาส & เช็คชื่อ</h2>
-            <div class="bg-sky-50/60 border-2 border-sky-100 rounded-3xl p-4">
-                <p class="font-bold">ด.ช. ภูมิใจ (น้องภูมิ) - มาแล้ว: <span id="count_s1">3</span> คาบ</p>
-            </div>
-        </div>
+            const [scheduleMonthYear, setScheduleMonthYear] = React.useState('พฤศจิกายน 2569');
+            const [showEditMonthModal, setShowEditMonthModal] = React.useState(false);
+            const [newMonthYearInput, setNewMonthYearInput] = React.useState('');
 
-        <div id="contentPayment" class="hidden space-y-4">
-            <h2 class="text-lg font-bold text-pink-600">💳 สถานะการชำระค่าเรียนพิเศษ</h2>
-            <p>ตรวจสอบสถานะการชำระเงินเรียบร้อย</p>
-        </div>
+            const [columns, setColumns] = React.useState([]);
+            const [timeSlots, setTimeSlots] = React.useState([]);
+            const [notes, setNotes] = React.useState([]);
+            const [classesList, setClassesList] = React.useState([]);
 
-        <div id="pinModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-pink-200 text-center">
-                <h3 class="text-lg font-bold text-pink-600 mb-2">👩‍🏫 รหัสผ่านโหมดครู</h3>
-                <p class="text-xs text-slate-500 mb-4">รหัสผ่านคือ: 123456</p>
-                <input type="password" id="pinBox" placeholder="••••••" class="w-full text-center text-2xl p-3 border-2 border-pink-200 rounded-2xl mb-3 font-bold" maxlength="6">
-                <div class="flex gap-2">
-                    <button onclick="closePin()" class="flex-1 bg-slate-100 py-3 rounded-2xl font-bold text-sm">ยกเลิก</button>
-                    <button onclick="verifyPinCode()" class="flex-1 bg-pink-500 text-white py-3 rounded-2xl font-bold text-sm">ยืนยัน</button>
-                </div>
-            </div>
-        </div>
+            const [selectedClassForCheckin, setSelectedClassForCheckin] = React.useState(null);
+            const [showAddClassModal, setShowAddClassModal] = React.useState(false);
+            const [newClassName, setNewClassName] = React.useState('');
+            const [editingFeeStudent, setEditingFeeStudent] = React.useState(null);
 
-        <div class="mt-8 text-center border-t border-pink-100 pt-4 text-xs text-pink-600 font-bold">
-            💖 ครูแนน ขอเป็นกำลังใจให้นักเรียนทุกคนนะคะ 💖
-        </div>
-    </div>
+            // โหลดข้อมูลผ่าน Fetch API จาก Google Apps Script
+            React.useEffect(() => {
+                fetch(SCRIPT_URL + "?action=get")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data) {
+                            if (data.monthYear) setScheduleMonthYear(data.monthYear);
+                            if (data.columns) setColumns(data.columns);
+                            if (data.timeSlots) setTimeSlots(data.timeSlots);
+                            if (data.notes) setNotes(data.notes);
+                            if (data.classesList) setClassesList(data.classesList);
+                        }
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        setLoading(false);
+                    });
+            }, []);
 
-    <script>
-        function switchRole(role) {
-            if (role === 'teacher') {
-                document.getElementById('pinModal').classList.remove('hidden');
-            } else {
-                alert('สลับเป็นโหมดนักเรียนเรียบร้อย');
-            }
-        }
-        function closePin() {
-            document.getElementById('pinModal').classList.add('hidden');
-            document.getElementById('pinBox').value = '';
-        }
-        function verifyPinCode() {
-            if (document.getElementById('pinBox').value === '123456') {
-                alert('เข้าสู่โหมดคุณครูสำเร็จ!');
-                closePin();
-            } else {
-                alert('รหัสผ่านไม่ถูกต้อง (ใช้ 123456)');
-            }
-        }
-        function switchTab(tab) {
-            document.getElementById('contentSchedule').classList.add('hidden');
-            document.getElementById('contentRoster').classList.add('hidden');
-            document.getElementById('contentPayment').classList.add('hidden');
-            if (tab === 'schedule') document.getElementById('contentSchedule').classList.remove('hidden');
-            if (tab === 'roster') document.getElementById('contentRoster').classList.remove('hidden');
-            if (tab === 'payment') document.getElementById('contentPayment').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+            // ฟังก์ชันบันทึกข้อมูลออนไลน์ไปยัง Google Sheets
+            const saveDataToCloud = (newData) => {
+                const payload = {
+                    monthYear: newData.monthYear || scheduleMonthYear,
+                    columns: newData.columns || columns,
+                    timeSlots: newData.timeSlots || timeSlots,
+                    notes: newData.notes || notes,
+                    classesList: newData.classesList || classesList
+                };
+
+                fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    showToast('บันทึกข้อมูลลง Google Sheets แล้ว');
+                }).catch(err => console.error(err));
+            };
+
+            const handleRoleSwitch = (targetRole) => {
+                if (targetRole === 'teacher') {
+                    setShowPinModal(true);
+                    setPinInput('');
+                    setPinError(false);
+                } else {
+                    setRole('student');
+                    showToast('สลับเป็นโหมดนักเรียนเรียบร้อย');
+                }
+            };
+
+            const verifyPin = (e) => {
+                e.preventDefault();
+                if (pinInput === '123456') {
+                    setRole('teacher');
+                    setShowPinModal(false);
+                    showToast('เข้าสู่โหมดคุณครูสำเร็จ');
+                } else {
+                    setPinError(true);
+                }
+            };
+
+            const addColumn = () => {
+                const newColId = 'col_' + Date.now();
+                const newCols = [...columns, { id: newColId, date: 'วันใหม่' }];
+                const newSlots = timeSlots.map(slot => ({
+                    ...slot,
+                    data: { ...slot.data, [newColId]: 'ปกติ' }
+                }));
+                setColumns(newCols);
+                setTimeSlots(newSlots);
+                showToast('เพิ่มช่องวันที่เรียนแล้ว');
+                saveDataToCloud({ columns: newCols, timeSlots: newSlots });
+            };
+
+            const deleteColumn = (colId) => {
+                const newCols = columns.filter(c => c.id !== colId);
+                setColumns(newCols);
+                showToast('ลบช่องวันที่เรียนแล้ว');
+                saveDataToCloud({ columns: newCols });
+            };
+
+            const addTimeSlot = () => {
+                const newId = 't_' + Date.now();
+                const emptyData = {};
+                columns.forEach(col => { emptyData[col.id] = 'ปกติ'; });
+                const newSlots = [...timeSlots, { id: newId, time: '09.00 - 11.00 น.', data: emptyData }];
+                setTimeSlots(newSlots);
+                showToast('เพิ่มช่วงเวลาเรียนแล้ว');
+                saveDataToCloud({ timeSlots: newSlots });
+            };
+
+            const deleteTimeSlot = (slotId) => {
+                const newSlots = timeSlots.filter(s => s.id !== slotId);
+                setTimeSlots(newSlots);
+                showToast('ลบช่วงเวลาเรียนแล้ว');
+                saveDataToCloud({ timeSlots: newSlots });
+            };
+
+            const toggleAttendance = (classId, studentId, amount) => {
+                if (role !== 'teacher') return;
+                const updated = classesList.map(cls => {
+                    if (cls.id === classId) {
+                        return {
+                            ...cls,
+                            students: cls.students.map(s => s.id === studentId ? { ...s, attended: s.attended + amount } : s)
+                        };
+                    }
+                    return cls;
+                });
+                setClassesList(updated);
+                if (selectedClassForCheckin && selectedClassForCheckin.id === classId) {
+                    setSelectedClassForCheckin(updated.find(c => c.id === classId));
+                }
+                showToast('อัปเดตคาบเรียนแล้ว');
+                saveDataToCloud({ classesList: updated });
+            };
+
+            const togglePaidStatus = (classId, studentId) => {
+                if (role !== 'teacher') return;
+                const updated = classesList.map(cls => {
+                    if (cls.id === classId) {
+                        return {
+                            ...cls,
+                            students: cls.students.map(s => s.id === studentId ? { ...s, paid: !s.paid } : s)
+                        };
+                    }
+                    return cls;
+                });
+                setClassesList(updated);
+                showToast('อัปเดตสถานะการชำระเงินแล้ว');
+                saveDataToCloud({ classesList: updated });
+            };
+
+            const updateStudentFee = (classId, studentId, newAmount) => {
+                const updated = classesList.map(cls => {
+                    if (cls.id === classId) {
+                        return {
+                            ...cls,
+                            students: cls.students.map(s => s.id === studentId ? { ...s, amount: Number(newAmount) || 0 } : s)
+                        };
+                    }
+                    return cls;
+                });
+                setClassesList(updated);
+                setEditingFeeStudent(null);
+                showToast('อัปเดตยอดค่าเรียนแล้ว');
+                saveDataToCloud({ classesList: updated });
+            };
+
+            const addStudentToClass = (classId, name, nickname, amount) => {
+                const updated = classesList.map(cls => {
+                    if (cls.id === classId) {
+                        const newStu = { id: 's_' + Date.now(),
